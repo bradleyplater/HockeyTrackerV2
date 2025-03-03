@@ -41,4 +41,4 @@ jobs:
                   sleep 3
 
             - name: Run integration tests
-              run: behave API/src/test/features || exit 1
+              run: cd API/src && behave ./test/features || exit 1
