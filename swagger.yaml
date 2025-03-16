@@ -20,3 +20,36 @@ paths:
                             schema:
                                 type: string
                                 example: We are live baby!
+    /seasons:
+        get:
+            summary: Hockey Seasons
+            description: Gets a list of all Seasons
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Season'
+
+components:
+    schemas:
+        Season:
+            type: object
+            properties:
+                id:
+                    type: string
+                    example: 'SSN100'
+                name:
+                    type: string
+                    example: '23/24'
+                startDate:
+                    type: string
+                    format: date-time
+                    example: '2024-03-14T09:00:00Z'
+                endDate:
+                    type: string
+                    format: date-time
+                    example: '2024-03-20T17:00:00Z'
