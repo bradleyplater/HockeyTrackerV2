@@ -6,7 +6,7 @@
     "scripts": {
         "start": "npx ts-node start.ts",
         "build": "tsc",
-        "test": "jest"
+        "test": "jest --detectOpenHandles --verbose"
     },
     "author": "",
     "license": "ISC",
@@ -25,7 +25,9 @@
         "typescript": "^5.8.2"
     },
     "dependencies": {
+        "dotenv": "^16.4.7",
         "express": "^4.21.2",
+        "mongodb": "^6.14.2",
         "swagger-ui-dist": "^5.20.0",
         "swagger-ui-express": "^5.0.1",
         "yamljs": "^0.3.0"
