@@ -14,4 +14,16 @@ describe('GetAllSeasons', () => {
         expect(mockFind).toHaveBeenCalledTimes(1);
         expect(mockToArray).toHaveBeenCalledTimes(1);
     });
+
+    it('should not call out to mongodb once', async () => {
+        const mockToArray = jest.fn().mockResolvedValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.seasons = undefined as any;
+
+        await GetAllSeasons();
+
+        expect(mockFind).not.toHaveBeenCalled();
+        expect(mockToArray).not.toHaveBeenCalled();
+    });
 });
