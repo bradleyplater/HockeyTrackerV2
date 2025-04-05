@@ -1,0 +1,1 @@
+To test the application you need to generate an api key and hash it and save it to - TEST_API_KEY in the .env file

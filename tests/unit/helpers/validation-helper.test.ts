@@ -48,12 +48,17 @@ describe('validation-helper', () => {
                 name: 'TooLongNameThatExceedsThirtyCharactersLimit',
                 expectedResponse: false,
             },
+            {
+                description: 'A name that is undefined should not be accepted',
+                name: undefined,
+                expectedResponse: false,
+            },
         ];
 
         it.each(testCases)(
             '$description - $name',
             ({ name, expectedResponse }) => {
-                expect(isValidName(name)).toBe(expectedResponse);
+                expect(isValidName(name as string)).toBe(expectedResponse);
             }
         );
     });
