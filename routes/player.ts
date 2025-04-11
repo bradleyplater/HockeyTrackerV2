@@ -1,26 +1,25 @@
 import express from 'express';
 import { isValidName } from '../helpers/validation-helper';
 import { ApiKeyValidation } from '../middleware/authentication';
+import { IPlayer } from '../repository/player.repository';
+import { addPlayerToDatabase } from '../services/player.service';
 const router = express.Router();
 
 router.use(ApiKeyValidation);
 router.use(express.json());
 
-interface Player {
-    firstName: string;
-    surname: string;
-}
-
 router.post('/', async (req, res) => {
     try {
-        const body = req.body as Player;
+        const body = req.body as IPlayer;
 
         if (!ValidatePostPlayerBody(body)) {
             res.status(400).send();
             return;
         }
 
-        res.json().send();
+        const player = await addPlayerToDatabase(body.firstName, body.surname);
+
+        res.status(201).json(player).send();
     } catch (error) {
         console.log(error);
 

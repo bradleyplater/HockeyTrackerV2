@@ -1,9 +1,13 @@
 import { configDotenv } from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
+import { IApiKey } from './apiKey.repository';
+import { ISeason } from './seasons.repository';
+import { IPlayer } from './player.repository';
 
 export interface IHockeyTrackerCollections {
-    seasons?: Collection;
-    apiKeys?: Collection;
+    seasons?: Collection<ISeason>;
+    apiKeys?: Collection<IApiKey>;
+    player?: Collection<IPlayer>;
 }
 
 export const collections: IHockeyTrackerCollections = {};
@@ -19,15 +23,24 @@ export async function connectToDatabase() {
 
     const db: Db = client.db('HockeyTracker');
 
-    const apiKeyCollection: Collection = db.collection('ApiKeys');
-    const seasonsCollection: Collection = db.collection('Seasons');
+    const apiKeyCollection: Collection<IApiKey> =
+        db.collection<IApiKey>('ApiKeys');
+    const seasonsCollection: Collection<ISeason> =
+        db.collection<ISeason>('Seasons');
+    const playerCollection: Collection<IPlayer> =
+        db.collection<IPlayer>('Player');
 
     collections.seasons = seasonsCollection;
     collections.apiKeys = apiKeyCollection;
+    collections.player = playerCollection;
 
     console.log(
-        `Successfully connected to database: ${db.databaseName} and collection: ${seasonsCollection.collectionName}`
+        `Successfully connected to database: ${db.databaseName} and collections: `
     );
+
+    Object.keys(collections).forEach((key) => {
+        console.log(`${key}`);
+    });
 }
 
 export function closeClientConnection() {
