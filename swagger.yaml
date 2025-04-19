@@ -24,15 +24,31 @@ paths:
         get:
             summary: Hockey Seasons
             description: Gets a list of all Seasons
+
+    /player:
+        post:
+            summary: Create a new player
+            description: Creates a new player based on a first name and surname that was passed in
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - firstName
+                                - surname
+                            properties:
+                                name:
+                                    type: string
+                                    example: John Doe
+                                email:
+                                    type: string
+                                    format: email
+                                    example: johndoe@example.com
             responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/Season'
+                '403':
+                    description: Unauthorised
 
 components:
     schemas:
