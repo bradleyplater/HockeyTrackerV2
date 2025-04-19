@@ -22,11 +22,11 @@ jobs:
             - uses: actions/checkout@v4
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v4
-              env:
-                  TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: 'npm'
             - run: npm ci
             - run: npm run build --if-present
             - run: npm test
+              env:
+                  TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
