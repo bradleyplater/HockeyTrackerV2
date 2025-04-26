@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import { collections } from '../../repository/database';
 import * as SeasonsRepository from '../../repository/seasons.repository';
 import app from '../../server';
@@ -11,14 +12,14 @@ describe('Seasons Integration Tests', () => {
                     'Should return empty array of seasons when no seasons are returned from mongo',
                 mockedMongoResponse: [],
                 expectedBody: [],
-                expectedStatus: 200,
+                expectedStatus: StatusCodes.OK,
             },
             {
                 description:
                     'Should return 1 item in the array when only 1 item returned from mongo',
                 mockedMongoResponse: [{ _id: '123', name: '123' }],
                 expectedBody: [{ _id: '123', name: '123' }],
-                expectedStatus: 200,
+                expectedStatus: StatusCodes.OK,
             },
             {
                 description:
@@ -33,7 +34,7 @@ describe('Seasons Integration Tests', () => {
                     { _id: '456', name: '456' },
                     { _id: '789', name: '789' },
                 ],
-                expectedStatus: 200,
+                expectedStatus: StatusCodes.OK,
             },
         ];
 
@@ -57,7 +58,7 @@ describe('Seasons Integration Tests', () => {
             );
 
             const response = await request(app).get('/api/v2/seasons');
-            expect(response.status).toBe(500);
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
     });
 });

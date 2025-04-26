@@ -1,8 +1,9 @@
 import express from 'express';
-import { isValidName } from '../helpers/validation-helper';
+import { isValidName, isValidPlayerId } from '../helpers/validation-helper';
 import { ApiKeyValidation } from '../middleware/authentication';
 import {
     GetAllPlayersFromDatabase,
+    GetPlayerByIdFromDatabase,
     IPlayer,
 } from '../repository/player.repository';
 import { addPlayerToDatabase } from '../services/player.service';
@@ -17,17 +18,17 @@ router.post('/', async (req, res) => {
         const body = req.body as IPlayer;
 
         if (!ValidatePostPlayerBody(body)) {
-            res.status(400).send();
+            res.status(StatusCodes.BAD_REQUEST).send();
             return;
         }
 
         const player = await addPlayerToDatabase(body.firstName, body.surname);
 
-        res.status(201).json(player).send();
+        res.status(StatusCodes.CREATED).json(player).send();
     } catch (error) {
         console.log(error);
 
-        res.status(500).send();
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
     }
 });
 
@@ -40,6 +41,30 @@ router.get('/', async (req, res) => {
         }
 
         res.status(StatusCodes.OK).json(players).send();
+    } catch (error) {
+        console.log(error);
+
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+    }
+});
+
+router.get('/:playerId', async (req, res) => {
+    try {
+        const { playerId } = req.params;
+
+        if (!isValidPlayerId(playerId)) {
+            console.log('Bad Request: Invalid Player Id');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+
+        const player = await GetPlayerByIdFromDatabase(playerId);
+
+        if (player === undefined || player === null) {
+            res.status(StatusCodes.NOT_FOUND).send();
+        }
+
+        res.status(StatusCodes.OK).json(player).send();
     } catch (error) {
         console.log(error);
 

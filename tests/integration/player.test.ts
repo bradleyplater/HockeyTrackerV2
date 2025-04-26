@@ -20,42 +20,42 @@ describe('Player Integration Tests', () => {
         const badPostBodyCases = [
             {
                 description: 'When empty body is sent',
-                expectedStatus: 400,
+                expectedStatus: StatusCodes.BAD_REQUEST,
                 body: {},
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'When only firstName is sent',
-                expectedStatus: 400,
+                expectedStatus: StatusCodes.BAD_REQUEST,
                 body: { firstName: 'Bradley' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'When only surname is sent',
-                expectedStatus: 400,
+                expectedStatus: StatusCodes.BAD_REQUEST,
                 body: { surname: 'Doe' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'No api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 body: { firstName: 'Bradley', surname: 'Doe' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: '',
             },
             {
                 description: 'Incorrect api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 body: { firstName: 'Bradley', surname: 'Doe' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: 'incorrect key',
             },
             {
                 description: 'When no api keys are stored',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 body: { firstName: 'Bradley', surname: 'Doe' },
                 mockAuthKeyFunction: () => mockEmptyAuthKeys(),
                 apiKey: testApiKey,
@@ -85,7 +85,7 @@ describe('Player Integration Tests', () => {
                 .set('x-api-key', testApiKey)
                 .send({ firstName: 'Bradley', surname: 'Doe' });
 
-            expect(response.status).toBe(500);
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
         it('201 - Successfully create a player', async () => {
@@ -105,7 +105,7 @@ describe('Player Integration Tests', () => {
                 .set('x-api-key', testApiKey)
                 .send({ firstName: 'Bradley', surname: 'Doe' });
 
-            expect(response.status).toBe(201);
+            expect(response.status).toBe(StatusCodes.CREATED);
             expect(response.body.firstName).toBe('Bradley');
             expect(response.body.surname).toBe('Doe');
         });
@@ -122,19 +122,19 @@ describe('Player Integration Tests', () => {
         const badPostBodyCases = [
             {
                 description: 'No api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: '',
             },
             {
                 description: 'Incorrect api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: 'incorrect key',
             },
             {
                 description: 'When no api keys are stored',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 mockAuthKeyFunction: () => mockEmptyAuthKeys(),
                 apiKey: testApiKey,
             },
@@ -166,7 +166,7 @@ describe('Player Integration Tests', () => {
                 .set('x-api-key', testApiKey)
                 .send();
 
-            expect(response.status).toBe(500);
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
         it('200 - Successfully got all players', async () => {
@@ -236,6 +236,150 @@ describe('Player Integration Tests', () => {
 
                 const response = await request(app)
                     .get('/api/v2/player')
+                    .set('x-api-key', testApiKey)
+                    .send();
+
+                expect(response.status).toBe(expectedStatusCode);
+            }
+        );
+    });
+
+    describe('Get player by id', () => {
+        const playerId = 'PLR123456';
+
+        beforeEach(() => {});
+
+        afterEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+        });
+
+        const badGetCases = [
+            {
+                description: 'No api key sent',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: '',
+            },
+            {
+                description: 'Incorrect api key sent',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: 'incorrect key',
+            },
+            {
+                description: 'When no api keys are stored',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockEmptyAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'No playerId provided',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                overwrittenPlayerId: null,
+            },
+            {
+                description: 'Incorrect playerId: incorrect prefix',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                overwrittenPlayerId: 'AAA123456',
+            },
+            {
+                description: 'Incorrect playerId: incorrect digits',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                overwrittenPlayerId: 'PLR12345',
+            },
+        ];
+
+        it.each(badGetCases)(
+            '$expectedStatus - $description',
+            async ({
+                expectedStatus,
+                mockAuthKeyFunction,
+                apiKey,
+                overwrittenPlayerId,
+            }) => {
+                mockAuthKeyFunction();
+                const response = await request(app)
+                    .get(`/api/v2/player/${overwrittenPlayerId}`)
+                    .set('x-api-key', apiKey)
+                    .send();
+
+                expect(response.status).toBe(expectedStatus);
+            }
+        );
+
+        it('500 - When error occurs, return 500', async () => {
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockRejectedValue(new Error());
+
+            mockAuthKeys();
+
+            const response = await request(app)
+                .get(`/api/v2/player/${playerId}`)
+                .set('x-api-key', testApiKey)
+                .send();
+
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('200 - Successfully got all players', async () => {
+            mockAuthKeys();
+
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockResolvedValue({
+                _id: 'PLR123456',
+                firstName: 'Bradley',
+                surname: 'Doe',
+            });
+
+            const response = await request(app)
+                .get(`/api/v2/player/${playerId}`)
+                .set('x-api-key', testApiKey)
+                .send();
+
+            expect(response.status).toBe(StatusCodes.OK);
+            expect(response.body).toEqual({
+                _id: 'PLR123456',
+                firstName: 'Bradley',
+                surname: 'Doe',
+            });
+        });
+
+        const notFoundTestCases = [
+            {
+                description: 'When mongo returns null',
+                expectedStatusCode: StatusCodes.NOT_FOUND,
+                mongoReturn: null,
+            },
+            {
+                description: 'When mongo returns undefined',
+                expectedStatusCode: StatusCodes.NOT_FOUND,
+                mongoReturn: undefined,
+            },
+        ];
+
+        it.each(notFoundTestCases)(
+            '404 - When mongo returns ',
+            async ({ expectedStatusCode, mongoReturn }) => {
+                mockAuthKeys();
+
+                jest.spyOn(
+                    PlayerRepository,
+                    'GetPlayerByIdFromDatabase'
+                ).mockResolvedValue(mongoReturn);
+
+                const response = await request(app)
+                    .get(`/api/v2/player/${playerId}`)
                     .set('x-api-key', testApiKey)
                     .send();
 

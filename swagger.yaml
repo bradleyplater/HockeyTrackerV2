@@ -3,6 +3,7 @@ info:
     title: Hockey Tracker Api
     description: Api to retrieve and update hockey statistics for rec teams
     version: 0.0.1
+
 servers:
     - url: http://localhost:3000/api/v2
       description: local dev
@@ -20,6 +21,7 @@ paths:
                             schema:
                                 type: string
                                 example: We are live baby!
+
     /seasons:
         get:
             summary: Hockey Seasons
@@ -39,38 +41,65 @@ paths:
                                 - firstName
                                 - surname
                             properties:
-                                name:
+                                firstName:
                                     type: string
-                                    example: John Doe
-                                email:
+                                    example: John
+                                surname:
                                     type: string
-                                    format: email
-                                    example: johndoe@example.com
+                                    example: Doe
             responses:
                 '403':
                     description: Unauthorised
-
                 '500':
                     description: Server error
 
-            get:
-                summary: Get all players
-                description: Retrieves a list of all players
-                responses:
-                    '200':
+        get:
+            summary: Get all players
+            description: Retrieves a list of all players
+            responses:
+                '200':
                     description: A list of players
                     content:
                         application/json:
-                        schema:
-                            type: array
-                            items:
-                            $ref: '#/components/schemas/Player'
-                    '404':
-                        description: No players found
-                    '403':
-                        description: Unauthorised
-                    '500':
-                        description: Server error
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Player'
+                '404':
+                    description: No players found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /player/{playerId}:
+        get:
+            summary: Get player by ID
+            description: Retrieves a player by their unique playerId
+            parameters:
+                - name: playerId
+                  in: path
+                  required: true
+                  description: Unique Player ID in the format PLR followed by 6 digits (e.g., PLR123456)
+                  schema:
+                      type: string
+                      pattern: '^PLR\d{6}$'
+                      example: PLR123456
+            responses:
+                '200':
+                    description: Player found successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Player'
+                '400':
+                    description: Invalid playerId format
+                '404':
+                    description: Player not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
 
 components:
     schemas:
@@ -83,6 +112,7 @@ components:
                 name:
                     type: string
                     example: '23/24'
+
         Player:
             type: object
             properties:
