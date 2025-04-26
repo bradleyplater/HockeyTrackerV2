@@ -26,3 +26,7 @@ export async function InsertPlayerToDatabase(player: IPlayer) {
 export async function GetAllPlayersFromDatabase() {
     return await collections.player?.find<IPlayer>({}).toArray();
 }
+
+export async function GetPlayerByIdFromDatabase(id: string) {
+    return await collections.player?.findOne<IPlayer>({ _id: id });
+}

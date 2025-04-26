@@ -1,6 +1,7 @@
 import { collections } from '../../../repository/database';
 import {
     GetAllPlayersFromDatabase,
+    GetPlayerByIdFromDatabase,
     InsertPlayerToDatabase,
 } from '../../../repository/player.repository';
 
@@ -82,5 +83,28 @@ describe('GetAllPlayers', () => {
 
         expect(mockFind).not.toHaveBeenCalled();
         expect(mockToArray).not.toHaveBeenCalled();
+    });
+});
+
+describe('GetPlayerById', () => {
+    it('should call out to mongodb once', async () => {
+        const mockFind = jest.fn().mockReturnValue({});
+
+        collections.player = { findOne: mockFind } as any;
+
+        await GetPlayerByIdFromDatabase('PLR123456');
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockFind).toHaveBeenCalledWith({ _id: 'PLR123456' });
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockFind = jest.fn().mockReturnValue({});
+
+        collections.player = undefined as any;
+
+        await GetPlayerByIdFromDatabase('PLR123456');
+
+        expect(mockFind).not.toHaveBeenCalled();
     });
 });
