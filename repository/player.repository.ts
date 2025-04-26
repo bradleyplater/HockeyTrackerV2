@@ -22,3 +22,7 @@ export async function InsertPlayerToDatabase(player: IPlayer) {
 
     return storedPlayer;
 }
+
+export async function GetAllPlayersFromDatabase() {
+    return await collections.player?.find<IPlayer>({}).toArray();
+}
