@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
     try {
         const players = await GetAllPlayersFromDatabase();
 
-        if (players == undefined) {
+        if (players === undefined || players === null) {
             res.status(StatusCodes.NOT_FOUND).send();
         }
 

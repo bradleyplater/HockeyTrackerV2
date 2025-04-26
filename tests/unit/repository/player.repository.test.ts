@@ -1,5 +1,8 @@
 import { collections } from '../../../repository/database';
-import { InsertPlayerToDatabase } from '../../../repository/player.repository';
+import {
+    GetAllPlayersFromDatabase,
+    InsertPlayerToDatabase,
+} from '../../../repository/player.repository';
 
 describe('InsertPlayerToDatabase', () => {
     it('should call out to mongodb to insert and find', async () => {
@@ -53,5 +56,31 @@ describe('InsertPlayerToDatabase', () => {
             findOne: mockFind,
             insertOne: mockInsertOne,
         } as any;
+    });
+});
+
+describe('GetAllPlayers', () => {
+    it('should call out to mongodb once', async () => {
+        const mockToArray = jest.fn().mockResolvedValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.player = { find: mockFind } as any;
+
+        await GetAllPlayersFromDatabase();
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockToArray).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockToArray = jest.fn().mockResolvedValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.player = undefined as any;
+
+        await GetAllPlayersFromDatabase();
+
+        expect(mockFind).not.toHaveBeenCalled();
+        expect(mockToArray).not.toHaveBeenCalled();
     });
 });
