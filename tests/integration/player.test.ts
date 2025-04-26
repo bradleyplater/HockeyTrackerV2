@@ -122,19 +122,19 @@ describe('Player Integration Tests', () => {
         const badPostBodyCases = [
             {
                 description: 'No api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: '',
             },
             {
                 description: 'Incorrect api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: 'incorrect key',
             },
             {
                 description: 'When no api keys are stored',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 mockAuthKeyFunction: () => mockEmptyAuthKeys(),
                 apiKey: testApiKey,
             },
@@ -166,7 +166,7 @@ describe('Player Integration Tests', () => {
                 .set('x-api-key', testApiKey)
                 .send();
 
-            expect(response.status).toBe(500);
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
         it('200 - Successfully got all players', async () => {

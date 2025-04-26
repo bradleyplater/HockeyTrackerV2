@@ -17,17 +17,17 @@ router.post('/', async (req, res) => {
         const body = req.body as IPlayer;
 
         if (!ValidatePostPlayerBody(body)) {
-            res.status(400).send();
+            res.status(StatusCodes.NOT_FOUND).send();
             return;
         }
 
         const player = await addPlayerToDatabase(body.firstName, body.surname);
 
-        res.status(201).json(player).send();
+        res.status(StatusCodes.CREATED).json(player).send();
     } catch (error) {
         console.log(error);
 
-        res.status(500).send();
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
     }
 });
 
