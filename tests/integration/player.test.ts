@@ -20,42 +20,42 @@ describe('Player Integration Tests', () => {
         const badPostBodyCases = [
             {
                 description: 'When empty body is sent',
-                expectedStatus: 400,
+                expectedStatus: StatusCodes.BAD_REQUEST,
                 body: {},
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'When only firstName is sent',
-                expectedStatus: 400,
+                expectedStatus: StatusCodes.BAD_REQUEST,
                 body: { firstName: 'Bradley' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'When only surname is sent',
-                expectedStatus: 400,
+                expectedStatus: StatusCodes.BAD_REQUEST,
                 body: { surname: 'Doe' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'No api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 body: { firstName: 'Bradley', surname: 'Doe' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: '',
             },
             {
                 description: 'Incorrect api key sent',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 body: { firstName: 'Bradley', surname: 'Doe' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: 'incorrect key',
             },
             {
                 description: 'When no api keys are stored',
-                expectedStatus: 403,
+                expectedStatus: StatusCodes.UNAUTHORIZED,
                 body: { firstName: 'Bradley', surname: 'Doe' },
                 mockAuthKeyFunction: () => mockEmptyAuthKeys(),
                 apiKey: testApiKey,
@@ -85,7 +85,7 @@ describe('Player Integration Tests', () => {
                 .set('x-api-key', testApiKey)
                 .send({ firstName: 'Bradley', surname: 'Doe' });
 
-            expect(response.status).toBe(500);
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
         it('201 - Successfully create a player', async () => {
@@ -105,7 +105,7 @@ describe('Player Integration Tests', () => {
                 .set('x-api-key', testApiKey)
                 .send({ firstName: 'Bradley', surname: 'Doe' });
 
-            expect(response.status).toBe(201);
+            expect(response.status).toBe(StatusCodes.CREATED);
             expect(response.body.firstName).toBe('Bradley');
             expect(response.body.surname).toBe('Doe');
         });

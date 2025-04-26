@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { GetAllApiKeys, IApiKey } from '../repository/apiKey.repository';
 import bcrypt from 'bcrypt';
+import { StatusCodes } from 'http-status-codes';
 
 // This isn't unit tested, but tested in all integration tests.
 export async function ApiKeyValidation(
@@ -11,7 +12,7 @@ export async function ApiKeyValidation(
     const apiKey = req.headers['x-api-key'] as string;
 
     if (!apiKey) {
-        res.status(403).send();
+        res.status(StatusCodes.UNAUTHORIZED).send();
         return;
     }
 
@@ -22,7 +23,7 @@ export async function ApiKeyValidation(
     );
 
     if (!validKey) {
-        res.status(403).send();
+        res.status(StatusCodes.UNAUTHORIZED).send();
         return;
     }
 

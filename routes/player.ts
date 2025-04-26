@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
         const body = req.body as IPlayer;
 
         if (!ValidatePostPlayerBody(body)) {
-            res.status(StatusCodes.NOT_FOUND).send();
+            res.status(StatusCodes.BAD_REQUEST).send();
             return;
         }
 
