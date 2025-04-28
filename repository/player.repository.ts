@@ -30,3 +30,7 @@ export async function GetAllPlayersFromDatabase() {
 export async function GetPlayerByIdFromDatabase(id: string) {
     return await collections.player?.findOne<IPlayer>({ _id: id });
 }
+
+export async function RemovePlayerByIdFromDatabase(id: string) {
+    return await collections.player?.deleteOne({ _id: id });
+}
