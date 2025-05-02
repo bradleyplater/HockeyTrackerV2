@@ -3,6 +3,7 @@ import {
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
     InsertPlayerToDatabase,
+    RemovePlayerByIdFromDatabase,
 } from '../../../repository/player.repository';
 
 describe('InsertPlayerToDatabase', () => {
@@ -106,5 +107,28 @@ describe('GetPlayerById', () => {
         await GetPlayerByIdFromDatabase('PLR123456');
 
         expect(mockFind).not.toHaveBeenCalled();
+    });
+});
+
+describe('RemovePlayerById', () => {
+    it('should call out to mongodb once', async () => {
+        const mockDelete = jest.fn().mockReturnValue({});
+
+        collections.player = { deleteOne: mockDelete } as any;
+
+        await RemovePlayerByIdFromDatabase('PLR123456');
+
+        expect(mockDelete).toHaveBeenCalledTimes(1);
+        expect(mockDelete).toHaveBeenCalledWith({ _id: 'PLR123456' });
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockDelete = jest.fn().mockReturnValue({});
+
+        collections.player = undefined as any;
+
+        await RemovePlayerByIdFromDatabase('PLR123456');
+
+        expect(mockDelete).not.toHaveBeenCalled();
     });
 });
