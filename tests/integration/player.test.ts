@@ -7,6 +7,7 @@ import {
 } from '../helpers/authenticationMock';
 import * as PlayerRepository from '../../repository/player.repository';
 import { StatusCodes } from 'http-status-codes';
+import { DeleteResult } from 'mongodb';
 
 describe('Player Integration Tests', () => {
     describe('Post', () => {
@@ -380,6 +381,149 @@ describe('Player Integration Tests', () => {
 
                 const response = await request(app)
                     .get(`/api/v2/player/${playerId}`)
+                    .set('x-api-key', testApiKey)
+                    .send();
+
+                expect(response.status).toBe(expectedStatusCode);
+            }
+        );
+    });
+
+    describe('Delete player by id', () => {
+        const playerId = 'PLR123456';
+
+        beforeEach(() => {});
+
+        afterEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+        });
+
+        const badDeleteCases = [
+            {
+                description: 'No api key sent',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: '',
+            },
+            {
+                description: 'Incorrect api key sent',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: 'incorrect key',
+            },
+            {
+                description: 'When no api keys are stored',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockEmptyAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'No playerId provided',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                overwrittenPlayerId: null,
+            },
+            {
+                description: 'Incorrect playerId: incorrect prefix',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                overwrittenPlayerId: 'AAA123456',
+            },
+            {
+                description: 'Incorrect playerId: incorrect digits',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                overwrittenPlayerId: 'PLR12345',
+            },
+        ];
+
+        it.each(badDeleteCases)(
+            '$expectedStatus - $description',
+            async ({
+                expectedStatus,
+                mockAuthKeyFunction,
+                apiKey,
+                overwrittenPlayerId,
+            }) => {
+                mockAuthKeyFunction();
+                const response = await request(app)
+                    .delete(`/api/v2/player/${overwrittenPlayerId}`)
+                    .set('x-api-key', apiKey)
+                    .send();
+
+                expect(response.status).toBe(expectedStatus);
+            }
+        );
+
+        it('500 - When error occurs, return 500', async () => {
+            jest.spyOn(
+                PlayerRepository,
+                'RemovePlayerByIdFromDatabase'
+            ).mockRejectedValue(new Error());
+
+            mockAuthKeys();
+
+            const response = await request(app)
+                .delete(`/api/v2/player/${playerId}`)
+                .set('x-api-key', testApiKey)
+                .send();
+
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('200 - Successfully deleted a player', async () => {
+            mockAuthKeys();
+
+            jest.spyOn(
+                PlayerRepository,
+                'RemovePlayerByIdFromDatabase'
+            ).mockResolvedValue({
+                acknowledged: true,
+                deletedCount: 1,
+            });
+
+            const response = await request(app)
+                .delete(`/api/v2/player/${playerId}`)
+                .set('x-api-key', testApiKey)
+                .send();
+
+            expect(response.status).toBe(StatusCodes.NO_CONTENT);
+        });
+
+        const notFoundTestCases = [
+            {
+                description: 'When no played is found',
+                expectedStatusCode: StatusCodes.NOT_FOUND,
+                mongoReturn: { acknowledged: true, deletedCount: 0 },
+            },
+            {
+                description: 'When mongo returns undefined',
+                expectedStatusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                mongoReturn: undefined,
+            },
+            {
+                description: 'When mongo returns null',
+                expectedStatusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+                mongoReturn: null,
+            },
+        ];
+
+        it.each(notFoundTestCases)(
+            '$expectedStatusCode - $description',
+            async ({ expectedStatusCode, mongoReturn }) => {
+                mockAuthKeys();
+
+                jest.spyOn(
+                    PlayerRepository,
+                    'RemovePlayerByIdFromDatabase'
+                ).mockResolvedValue(mongoReturn as DeleteResult);
+
+                const response = await request(app)
+                    .delete(`/api/v2/player/${playerId}`)
                     .set('x-api-key', testApiKey)
                     .send();
 

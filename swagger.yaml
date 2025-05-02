@@ -101,6 +101,30 @@ paths:
                 '500':
                     description: Server error
 
+        delete:
+            summary: Delete player by ID
+            description: Deletes a player using their unique playerId
+            parameters:
+                - name: playerId
+                  in: path
+                  required: true
+                  description: Unique Player ID in the format PLR followed by 6 digits (e.g., PLR123456)
+                  schema:
+                      type: string
+                      pattern: '^PLR\d{6}$'
+                      example: PLR123456
+            responses:
+                '204':
+                    description: Player deleted successfully (no content)
+                '400':
+                    description: Invalid playerId format
+                '404':
+                    description: Player not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
 components:
     schemas:
         Season:

@@ -98,14 +98,17 @@ router.delete('/:playerId', async (req, res) => {
         const { playerId } = req.params;
 
         if (!isValidPlayerId(playerId)) {
-            console.log('Bad Request: Invalid Player Id');
+            logger.LogBadRequest('Invalid Player Id');
             res.status(StatusCodes.BAD_REQUEST).send();
             return;
         }
 
-        const player = await RemovePlayerByIdFromDatabase(playerId);
+        const deleteResponse = await RemovePlayerByIdFromDatabase(playerId);
 
-        if (player === undefined || player === null) {
+        if (deleteResponse === undefined || deleteResponse === null) {
+            throw new Error('Mongo Failed to delete');
+        } else if (deleteResponse.deletedCount === 0) {
+            logger.LogBadRequest('No player found to delete');
             res.status(StatusCodes.NOT_FOUND).send();
             return;
         }
