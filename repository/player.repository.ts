@@ -34,3 +34,18 @@ export async function GetPlayerByIdFromDatabase(id: string) {
 export async function RemovePlayerByIdFromDatabase(id: string) {
     return await collections.player?.deleteOne({ _id: id });
 }
+
+export async function UpdatePlayerDetailsByIdFromDatabase(
+    id: string,
+    updatedDetails: IPlayer
+) {
+    return await collections.player?.updateOne(
+        { _id: id },
+        {
+            $set: {
+                firstName: updatedDetails.firstName,
+                surname: updatedDetails.surname,
+            },
+        }
+    );
+}

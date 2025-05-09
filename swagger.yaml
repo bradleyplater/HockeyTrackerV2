@@ -124,6 +124,45 @@ paths:
                     description: Unauthorised
                 '500':
                     description: Server error
+        patch:
+            summary: Update player details
+            description: Updates a player's first name and surname using their unique playerId
+            parameters:
+                - name: playerId
+                  in: path
+                  required: true
+                  description: Unique Player ID in the format PLR followed by 6 digits (e.g., PLR123456)
+                  schema:
+                      type: string
+                      pattern: '^PLR\d{6}$'
+                      example: PLR123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - firstName
+                                - surname
+                            properties:
+                                firstName:
+                                    type: string
+                                    example: John
+                                surname:
+                                    type: string
+                                    example: Doe
+                        responses:
+                            '204':
+                                description: Player updated successfully (no content)
+                            '304':
+                                description: Player not modified
+                            '400':
+                                description: Invalid playerId format or request body
+                            '403':
+                                description: Unauthorised
+                            '500':
+                                description: Server error
 
 components:
     schemas:

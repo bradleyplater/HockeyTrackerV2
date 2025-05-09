@@ -6,6 +6,7 @@ import {
     GetPlayerByIdFromDatabase,
     IPlayer,
     RemovePlayerByIdFromDatabase,
+    UpdatePlayerDetailsByIdFromDatabase,
 } from '../repository/player.repository';
 import { addPlayerToDatabase } from '../services/player.service';
 import { StatusCodes } from 'http-status-codes';
@@ -15,10 +16,6 @@ const router = express.Router();
 
 router.use(ApiKeyValidation);
 router.use(express.json());
-
-/*
-ADD LOGS FOR WHEN ROUTE IS STARTED AND WHY IT MIGHT BREAK
-*/
 
 router.post('/', async (req, res) => {
     try {
@@ -114,6 +111,46 @@ router.delete('/:playerId', async (req, res) => {
         }
 
         logger.LogRouteFinished('Delete Player');
+        res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error) {
+        console.log(error);
+
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+    }
+});
+
+router.patch('/:playerId/details', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Updating Player Details');
+        const { playerId } = req.params;
+        const updatedPlayer = req.body as IPlayer;
+
+        if (!isValidPlayerId(playerId)) {
+            logger.LogBadRequest('Invalid Player Id');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+
+        if (!ValidatePostPlayerBody(updatedPlayer)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+
+        const updateResponse = await UpdatePlayerDetailsByIdFromDatabase(
+            playerId,
+            updatedPlayer
+        );
+
+        if (updateResponse === undefined || updateResponse === null) {
+            throw new Error('Mongo Failed to update');
+        } else if (updateResponse.modifiedCount === 0) {
+            logger.LogBadRequest('No player found to delete');
+            res.status(StatusCodes.NOT_MODIFIED).send();
+            return;
+        }
+
+        logger.LogRouteFinished('Updating Player Details');
         res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
         console.log(error);
