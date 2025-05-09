@@ -3,6 +3,7 @@ import swaggerUi from 'swagger-ui-express';
 import LivenessRouter from './routes/liveness';
 import SeasonsRouter from './routes/seasons';
 import PlayerRouter from './routes/player';
+import TeamRouter from './routes/team';
 
 import YAML from 'yamljs';
 const swaggerDocument = YAML.load('./swagger.yaml');
@@ -16,5 +17,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v2/liveness', LivenessRouter);
 app.use('/api/v2/seasons', SeasonsRouter);
 app.use('/api/v2/player', PlayerRouter);
+app.use('/api/v2/team', TeamRouter);
 
 export default app;
