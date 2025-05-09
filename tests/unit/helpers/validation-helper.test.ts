@@ -1,9 +1,64 @@
 import {
     isValidName,
     isValidPlayerId,
+    isValidTeamName,
 } from '../../../helpers/validation-helper';
 
 describe('validation-helper', () => {
+    describe('teamName validation', () => {
+        const testCases = [
+            {
+                description: 'A team name with just letters should be accepted',
+                teamName: 'Maple Leafs',
+                expectedResponse: true,
+            },
+            {
+                description:
+                    'A team name with special characters should be accepted',
+                teamName: 'St. Louis Blues',
+                expectedResponse: true,
+            },
+            {
+                description: 'A team name with hyphens should be accepted',
+                teamName: 'Red-Wings',
+                expectedResponse: true,
+            },
+            {
+                description:
+                    'A team name less than 3 characters should not be accepted',
+                teamName: 'TM',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A team name more than 50 characters should not be accepted',
+                teamName:
+                    'This Team Name Is Way Too Long And Exceeds The Maximum Character Limit Set',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A team name that is undefined should not be accepted',
+                teamName: undefined,
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A team name with only spaces should not be accepted',
+                teamName: '   ',
+                expectedResponse: false,
+            },
+        ];
+
+        it.each(testCases)(
+            '$description - $teamName',
+            ({ teamName, expectedResponse }) => {
+                expect(isValidTeamName(teamName as string)).toBe(
+                    expectedResponse
+                );
+            }
+        );
+    });
     describe('name validation', () => {
         const testCases = [
             {
