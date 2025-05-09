@@ -4,6 +4,7 @@ import {
     GetPlayerByIdFromDatabase,
     InsertPlayerToDatabase,
     RemovePlayerByIdFromDatabase,
+    UpdatePlayerDetailsByIdFromDatabase,
 } from '../../../repository/player.repository';
 
 describe('InsertPlayerToDatabase', () => {
@@ -130,5 +131,44 @@ describe('RemovePlayerById', () => {
         await RemovePlayerByIdFromDatabase('PLR123456');
 
         expect(mockDelete).not.toHaveBeenCalled();
+    });
+});
+
+describe('UpdatePlayerById Details', () => {
+    it('should call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
+            _id: 'PLR123456',
+            firstName: 'John',
+            surname: 'Doe',
+        });
+
+        expect(mockUpdateOne).toHaveBeenCalledTimes(1);
+        expect(mockUpdateOne).toHaveBeenCalledWith(
+            { _id: 'PLR123456' },
+            {
+                $set: {
+                    firstName: 'John',
+                    surname: 'Doe',
+                },
+            }
+        );
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.player = undefined as any;
+
+        await UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
+            _id: 'PLR123456',
+            firstName: 'John',
+            surname: 'Doe',
+        });
+
+        expect(mockUpdateOne).not.toHaveBeenCalled();
     });
 });
