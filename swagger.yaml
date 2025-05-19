@@ -124,6 +124,8 @@ paths:
                     description: Unauthorised
                 '500':
                     description: Server error
+
+    /player/{playerId}/details:
         patch:
             summary: Update player details
             description: Updates a player's first name and surname using their unique playerId
@@ -164,6 +166,36 @@ paths:
                             '500':
                                 description: Server error
 
+    /team:
+        post:
+            summary: Create a new team
+            description: Creates a new team with the provided name
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - name
+                            properties:
+                                name:
+                                    type: string
+                                    example: 'Peterborough Warriors'
+            responses:
+                '201':
+                    description: Team created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Team'
+                '400':
+                    description: Invalid team name format
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
 components:
     schemas:
         Season:
@@ -192,3 +224,19 @@ components:
                 - _id
                 - firstName
                 - surname
+
+        Team:
+            type: object
+            properties:
+                _id:
+                    type: string
+                    example: 'TM123456'
+                name:
+                    type: string
+                    example: 'Peterborough Warriors'
+                players:
+                    type: array
+                    example: []
+            required:
+                - _id
+                - name

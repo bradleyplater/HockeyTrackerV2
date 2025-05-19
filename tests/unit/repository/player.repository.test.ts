@@ -59,6 +59,14 @@ describe('InsertPlayerToDatabase', () => {
             findOne: mockFind,
             insertOne: mockInsertOne,
         } as any;
+
+        await expect(
+            InsertPlayerToDatabase({
+                _id: 'PLR123456',
+                firstName: 'John',
+                surname: 'Doe',
+            })
+        ).rejects.toThrow('Player not created');
     });
 });
 
