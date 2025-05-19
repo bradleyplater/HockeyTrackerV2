@@ -17,7 +17,7 @@ export async function InsertTeamToDatabase(team: ITeam) {
     });
 
     if (!storedPlayer) {
-        throw new Error('Player not created');
+        throw new Error('Team not created');
     }
 
     return storedPlayer;
