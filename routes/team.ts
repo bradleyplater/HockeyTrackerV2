@@ -4,6 +4,7 @@ import { ApiKeyValidation } from '../middleware/authentication';
 import { StatusCodes } from 'http-status-codes';
 import * as logger from '../helpers/logger';
 import { addTeamToDatabase } from '../services/team.service';
+import { GetAllTeamsFromDatabase } from '../repository/team.repository';
 const router = express.Router();
 
 router.use(ApiKeyValidation);
@@ -27,6 +28,28 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Create Team');
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+    }
+});
+
+router.get('/', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Get All Teams');
+        const teams = await GetAllTeamsFromDatabase();
+
+        if (teams === undefined || teams === null) {
+            logger.LogRouteUnsuccessfulFinished('Get All Teams (No Teams)');
+            res.status(StatusCodes.NOT_FOUND).send();
+            return;
+        }
+
+        logger.LogRouteFinished('Get All Teams');
+        res.status(StatusCodes.OK).json(teams).send();
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished(
+            'Get All Teams (Internal Server Error)'
+        );
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
     }
 });

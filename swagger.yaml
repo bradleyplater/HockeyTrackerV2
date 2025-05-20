@@ -195,6 +195,26 @@ paths:
                     description: Unauthorised
                 '500':
                     description: Server error
+        get:
+            tags:
+                - Teams
+            summary: Get all teams
+            description: Returns an array of all teams in the system
+            responses:
+                '200':
+                    description: Successfully retrieved teams
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Team'
+                '401':
+                    description: Unauthorized - Invalid or missing API key
+                '404':
+                    description: No teams found
+                '500':
+                    description: Internal server error
 
 components:
     schemas:
@@ -236,6 +256,8 @@ components:
                     example: 'Peterborough Warriors'
                 players:
                     type: array
+                    items:
+                        $ref: '#/components/schemas/Player'
                     example: []
             required:
                 - _id

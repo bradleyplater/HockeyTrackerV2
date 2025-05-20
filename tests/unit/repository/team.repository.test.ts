@@ -6,7 +6,7 @@ import {
     RemovePlayerByIdFromDatabase,
     UpdatePlayerDetailsByIdFromDatabase,
 } from '../../../repository/player.repository';
-import { InsertTeamToDatabase } from '../../../repository/team.repository';
+import { InsertTeamToDatabase, GetAllTeamsFromDatabase } from '../../../repository/team.repository';
 
 describe('InsertTeamToDatabase', () => {
     afterEach(() => {
@@ -66,5 +66,31 @@ describe('InsertTeamToDatabase', () => {
                 players: [],
             })
         ).rejects.toThrow('Team not created');
+    });
+});
+
+describe('GetAllTeams', () => {
+    it('should call out to mongodb once', async () => {
+        const mockToArray = jest.fn().mockResolvedValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.team = { find: mockFind } as any;
+
+        await GetAllTeamsFromDatabase();
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockToArray).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockToArray = jest.fn().mockResolvedValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.team = undefined as any;
+
+        await GetAllTeamsFromDatabase();
+
+        expect(mockFind).not.toHaveBeenCalled();
+        expect(mockToArray).not.toHaveBeenCalled();
     });
 });

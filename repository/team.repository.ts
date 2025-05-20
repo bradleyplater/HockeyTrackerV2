@@ -22,3 +22,7 @@ export async function InsertTeamToDatabase(team: ITeam) {
 
     return storedPlayer;
 }
+
+export async function GetAllTeamsFromDatabase() {
+    return await collections.team?.find<ITeam>({}).toArray();
+}
