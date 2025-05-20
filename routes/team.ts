@@ -1,5 +1,9 @@
 import express from 'express';
-import { isValidName, isValidTeamName } from '../helpers/validation-helper';
+import {
+    isValidName,
+    isValidPlayerId,
+    isValidTeamName,
+} from '../helpers/validation-helper';
 import { ApiKeyValidation } from '../middleware/authentication';
 import { StatusCodes } from 'http-status-codes';
 import * as logger from '../helpers/logger';
@@ -54,8 +58,44 @@ router.get('/', async (req, res) => {
     }
 });
 
+// router.patch('/addplayer/:teamid', async (req, res) => {
+//     try {
+//         logger.LogRouteStarted('Add Player to Team');
+
+//         // validate body
+//         if (ValidateAddPlayerToTeamBody(req.body)) {
+//             logger.LogBadRequest('Invalid Body');
+//             res.status(StatusCodes.BAD_REQUEST).send();
+//             return;
+//         }
+
+//         // call service to add player to the team
+
+//         // return 200
+
+//         logger.LogRouteFinished('Get All Teams');
+//         res.status(StatusCodes.OK).json().send();
+//     } catch (error) {
+//         console.log(error);
+//         logger.LogRouteUnsuccessfulFinished(
+//             'Get All Teams (Internal Server Error)'
+//         );
+//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+//     }
+// });
+
 function ValidatePostTeamBody(team: { name: string }): boolean {
     return isValidTeamName(team.name);
 }
 
+function ValidateAddPlayerToTeamBody(player: {
+    playerId: string;
+    number: number;
+}): boolean {
+    return (
+        isValidPlayerId(player.playerId) &&
+        player.number != null &&
+        player.number != undefined
+    );
+}
 export default router;
