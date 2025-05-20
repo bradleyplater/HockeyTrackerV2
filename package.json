@@ -6,7 +6,7 @@
     "scripts": {
         "start": "npx ts-node start.ts",
         "build": "tsc",
-        "test": "jest --detectOpenHandles --verbose --coverage"
+        "test": "jest --detectOpenHandles --coverage"
     },
     "author": "",
     "license": "ISC",
