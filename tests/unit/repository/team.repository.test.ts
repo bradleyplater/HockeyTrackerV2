@@ -1,12 +1,9 @@
 import { collections } from '../../../repository/database';
 import {
-    GetAllPlayersFromDatabase,
-    GetPlayerByIdFromDatabase,
-    InsertPlayerToDatabase,
-    RemovePlayerByIdFromDatabase,
-    UpdatePlayerDetailsByIdFromDatabase,
-} from '../../../repository/player.repository';
-import { InsertTeamToDatabase, GetAllTeamsFromDatabase } from '../../../repository/team.repository';
+    InsertTeamToDatabase,
+    GetAllTeamsFromDatabase,
+    GetTeamByIdFromDatabase,
+} from '../../../repository/team.repository';
 
 describe('InsertTeamToDatabase', () => {
     afterEach(() => {
@@ -92,5 +89,28 @@ describe('GetAllTeams', () => {
 
         expect(mockFind).not.toHaveBeenCalled();
         expect(mockToArray).not.toHaveBeenCalled();
+    });
+});
+
+describe('GetTeamByIdFromDatabase', () => {
+    it('should call out to mongodb once', async () => {
+        const mockFind = jest.fn().mockReturnValue({});
+
+        collections.team = { findOne: mockFind } as any;
+
+        await GetTeamByIdFromDatabase('TM123456');
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockFind).toHaveBeenCalledWith({ _id: 'TM123456' });
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockFind = jest.fn().mockReturnValue({});
+
+        collections.team = undefined as any;
+
+        await GetTeamByIdFromDatabase('TM123456');
+
+        expect(mockFind).not.toHaveBeenCalled();
     });
 });
