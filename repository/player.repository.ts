@@ -1,11 +1,31 @@
 import { InsertOneResult } from 'mongodb';
 import { collections } from './database';
 
+/**
+ * @description
+ * This is a type that contains the details of a player.
+ * @property _id - The id of the player.
+ * @property firstName - The first name of the player.
+ * @property surname - The surname of the player.
+ * @property team - The teams that the player has been added to.
+ */
 export interface IPlayer {
     _id: string;
     firstName: string;
     surname: string;
+    teams: IPlayerTeamDetails[];
 }
+
+/**
+ * @description
+ * This is a type that contains the details of the team that the player has been added to.
+ * @property teamId - The id of the team that the player has been added to.
+ * @property number - The number of the player on the team.
+ */
+export type IPlayerTeamDetails = {
+    teamId: string;
+    number: number;
+};
 
 export async function InsertPlayerToDatabase(player: IPlayer) {
     const result = (await collections.player?.insertOne(
