@@ -46,3 +46,13 @@ export async function GetAllTeamsFromDatabase() {
 export async function GetTeamByIdFromDatabase(id: string) {
     return await collections.team?.findOne<ITeam>({ _id: id });
 }
+
+export async function AddPlayerToTeamInDatabase(
+    playerToAdd: ITeamPlayerDetails,
+    teamId: string
+) {
+    return await collections.team?.updateOne(
+        { _id: teamId },
+        { $push: { players: playerToAdd } }
+    );
+}
