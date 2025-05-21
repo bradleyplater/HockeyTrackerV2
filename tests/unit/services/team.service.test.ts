@@ -6,8 +6,13 @@ import {
     addPlayerToTeam,
     addTeamToDatabase,
 } from '../../../services/team.service';
-import { PlayerErrors, TeamErrors } from '../../../helpers/error-helper';
+import {
+    HockeyTrackerError,
+    PlayerErrors,
+    TeamErrors,
+} from '../../../helpers/error-helper';
 import { addPlayerToDatabase } from '../../../services/player.service';
+import { UpdateResult } from 'mongodb';
 
 describe('TeamService', () => {
     const generatePlayerMock = (
@@ -83,25 +88,35 @@ describe('TeamService', () => {
     });
 
     describe('AddPlayerToTeam', () => {
-        const errorTestCases = [
-            // {
-            //     description: 'When there is no team with the given id',
-            //     givenPlayerNumber: 4,
-            //     mongoReturnForTeam: undefined,
-            //     mongoReturnForPlayer: undefined,
-            //     expectedError: TeamErrors.TEAM_NOT_FOUND,
-            // },
-            // {
-            //     description: 'When there is no player with the given id',
-            //     givenPlayerNumber: 4,
-            //     mongoReturnForTeam: {
-            //         _id: 'TM123456',
-            //         name: 'Peterborough Warriors',
-            //         players: [],
-            //     },
-            //     mongoReturnForPlayer: undefined,
-            //     expectedError: PlayerErrors.PLAYER_NOT_FOUND,
-            // },
+        type ErrorTestCase = {
+            description: string;
+            givenPlayerNumber: number;
+            mongoReturnForTeam?: TeamRepository.ITeam;
+            mongoReturnForPlayer?: PlayerRepository.IPlayer;
+            mongoReturnForTeamUpdate?: UpdateResult<TeamRepository.ITeam>;
+            mongoReturnForPlayerUpdate?: UpdateResult<PlayerRepository.IPlayer>;
+            expectedError: HockeyTrackerError;
+        };
+
+        const errorTestCases: ErrorTestCase[] = [
+            {
+                description: 'When there is no team with the given id',
+                givenPlayerNumber: 4,
+                mongoReturnForTeam: undefined,
+                mongoReturnForPlayer: undefined,
+                expectedError: TeamErrors.TEAM_NOT_FOUND,
+            },
+            {
+                description: 'When there is no player with the given id',
+                givenPlayerNumber: 4,
+                mongoReturnForTeam: {
+                    _id: 'TM123456',
+                    name: 'Peterborough Warriors',
+                    players: [],
+                },
+                mongoReturnForPlayer: undefined,
+                expectedError: PlayerErrors.PLAYER_NOT_FOUND,
+            },
             {
                 description: 'When the given player is already on the team',
                 givenPlayerNumber: 4,
@@ -120,23 +135,121 @@ describe('TeamService', () => {
                 ]),
                 expectedError: TeamErrors.PLAYER_ALREADY_ON_TEAM,
             },
-            // {
-            //     description:
-            //         'When the given player has the same number as another player on the team',
-            //     givenPlayerNumber: 4,
-            //     mongoReturnForTeam: {
-            //         _id: 'TM123456',
-            //         name: 'Peterborough Warriors',
-            //         players: [
-            //             {
-            //                 playerId: 'PLR123456',
-            //                 number: 4,
-            //             },
-            //         ],
-            //     },
-            //     mongoReturnForPlayer: generatePlayerMock('PLR654321'),
-            //     expectedError: TeamErrors.PLAYER_NUMBER_IN_USE,
-            // },
+            {
+                description:
+                    'When the given player has the same number as another player on the team',
+                givenPlayerNumber: 4,
+                mongoReturnForTeam: {
+                    _id: 'TM123456',
+                    name: 'Peterborough Warriors',
+                    players: [
+                        {
+                            playerId: 'PLR654321',
+                            number: 4,
+                        },
+                    ],
+                },
+                mongoReturnForPlayer: generatePlayerMock('PLR123456'),
+                expectedError: TeamErrors.PLAYER_NUMBER_IN_USE,
+            },
+            {
+                description:
+                    'When the team wasn not able to be updated with the new player when mongo update returns undefined',
+                givenPlayerNumber: 13,
+                mongoReturnForTeam: {
+                    _id: 'TM123456',
+                    name: 'Peterborough Warriors',
+                    players: [
+                        {
+                            playerId: 'PLR654321',
+                            number: 4,
+                        },
+                    ],
+                },
+                mongoReturnForPlayer: generatePlayerMock('PLR123456'),
+                mongoReturnForTeamUpdate: undefined,
+                expectedError: TeamErrors.PLAYER_NOT_ADDED,
+            },
+            {
+                description:
+                    'When the team wasn not able to be updated with the new player when mongo update returns modifiedCount as 0',
+                givenPlayerNumber: 13,
+                mongoReturnForTeam: {
+                    _id: 'TM123456',
+                    name: 'Peterborough Warriors',
+                    players: [
+                        {
+                            playerId: 'PLR654321',
+                            number: 4,
+                        },
+                    ],
+                },
+                mongoReturnForPlayer: generatePlayerMock('PLR123456'),
+                mongoReturnForTeamUpdate: {
+                    acknowledged: true,
+                    matchedCount: 1,
+                    modifiedCount: 0,
+                    upsertedCount: 0,
+                    upsertedId: null,
+                },
+                expectedError: TeamErrors.PLAYER_NOT_ADDED,
+            },
+            {
+                description:
+                    'When the player was not able to be updated with the new team when mongo update returns modifiedCount as 0',
+                givenPlayerNumber: 13,
+                mongoReturnForTeam: {
+                    _id: 'TM123456',
+                    name: 'Peterborough Warriors',
+                    players: [
+                        {
+                            playerId: 'PLR654321',
+                            number: 4,
+                        },
+                    ],
+                },
+                mongoReturnForPlayer: generatePlayerMock('PLR123456'),
+                mongoReturnForTeamUpdate: {
+                    acknowledged: true,
+                    matchedCount: 1,
+                    modifiedCount: 1,
+                    upsertedCount: 0,
+                    upsertedId: null,
+                },
+                mongoReturnForPlayerUpdate: {
+                    acknowledged: true,
+                    matchedCount: 1,
+                    modifiedCount: 0,
+                    upsertedCount: 0,
+                    upsertedId: null,
+                },
+                expectedError: PlayerErrors.TEAM_NOT_ADDED,
+            },
+            {
+                description:
+                    'When the player was not able to be updated with the new team when mongo update returns undefined',
+                givenPlayerNumber: 13,
+                mongoReturnForTeam: {
+                    _id: 'TM123456',
+                    name: 'Peterborough Warriors',
+                    players: [
+                        {
+                            playerId: 'PLR654321',
+                            number: 4,
+                        },
+                    ],
+                },
+                mongoReturnForPlayer: generatePlayerMock('PLR123456'),
+                mongoReturnForTeamUpdate: {
+                    acknowledged: true,
+                    matchedCount: 1,
+                    modifiedCount: 1,
+                    upsertedCount: 0,
+                    upsertedId: null,
+                },
+                mongoReturnForPlayerUpdate: undefined,
+                expectedError: PlayerErrors.TEAM_NOT_ADDED,
+            },
         ];
 
         it.each(errorTestCases)(
@@ -145,6 +258,8 @@ describe('TeamService', () => {
                 givenPlayerNumber,
                 mongoReturnForTeam,
                 mongoReturnForPlayer,
+                mongoReturnForTeamUpdate,
+                mongoReturnForPlayerUpdate,
                 expectedError,
             }) => {
                 jest.spyOn(
@@ -153,14 +268,86 @@ describe('TeamService', () => {
                 ).mockResolvedValue(mongoReturnForTeam);
 
                 jest.spyOn(
+                    TeamRepository,
+                    'AddPlayerToTeamInDatabase'
+                ).mockResolvedValue(mongoReturnForTeamUpdate);
+
+                jest.spyOn(
                     PlayerRepository,
                     'GetPlayerByIdFromDatabase'
                 ).mockResolvedValue(mongoReturnForPlayer);
+
+                jest.spyOn(
+                    PlayerRepository,
+                    'AddTeamToPlayerByIdFromDatabase'
+                ).mockResolvedValue(mongoReturnForPlayerUpdate);
 
                 await expect(
                     addPlayerToTeam('TM123456', 'PLR123456', givenPlayerNumber)
                 ).rejects.toThrow(expectedError);
             }
         );
+
+        it('Should return the new team with new player object when successful', async () => {
+            jest.spyOn(
+                TeamRepository,
+                'GetTeamByIdFromDatabase'
+            ).mockResolvedValue({
+                _id: 'TM123456',
+                name: 'Peterborough Warriors',
+                players: [
+                    {
+                        playerId: 'PLR654321',
+                        number: 4,
+                    },
+                ],
+            });
+
+            jest.spyOn(
+                TeamRepository,
+                'AddPlayerToTeamInDatabase'
+            ).mockResolvedValue({
+                acknowledged: true,
+                matchedCount: 1,
+                modifiedCount: 1,
+                upsertedCount: 0,
+                upsertedId: null,
+            });
+
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockResolvedValue(generatePlayerMock('PLR123456'));
+
+            jest.spyOn(
+                PlayerRepository,
+                'AddTeamToPlayerByIdFromDatabase'
+            ).mockResolvedValue({
+                acknowledged: true,
+                matchedCount: 1,
+                modifiedCount: 1,
+                upsertedCount: 0,
+                upsertedId: null,
+            });
+
+            const expectedResult = {
+                _id: 'TM123456',
+                name: 'Peterborough Warriors',
+                players: [
+                    {
+                        playerId: 'PLR654321',
+                        number: 4,
+                    },
+                    {
+                        playerId: 'PLR123456',
+                        number: 13,
+                    },
+                ],
+            };
+
+            expect(await addPlayerToTeam('TM123456', 'PLR123456', 13)).toEqual(
+                expectedResult
+            );
+        });
     });
 });
