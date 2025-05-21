@@ -69,3 +69,17 @@ export async function UpdatePlayerDetailsByIdFromDatabase(
         }
     );
 }
+
+export async function AddTeamToPlayerByIdFromDatabase(
+    team: IPlayerTeamDetails,
+    playerId: string
+) {
+    return await collections.player?.updateOne(
+        { _id: playerId },
+        {
+            $push: {
+                teams: team,
+            },
+        }
+    );
+}
