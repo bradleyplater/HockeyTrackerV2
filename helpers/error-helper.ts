@@ -26,6 +26,11 @@ export const TeamErrors = {
         'PLAYER_NUMBER_IN_USE',
         400
     ),
+    PLAYER_NOT_ADDED: new HockeyTrackerError(
+        'Player could not be added to team',
+        'PLAYER_NOT_ADDED',
+        500
+    ),
 };
 
 export const PlayerErrors = {
@@ -33,5 +38,10 @@ export const PlayerErrors = {
         'Player not found',
         'PLAYER_NOT_FOUND',
         404
+    ),
+    TEAM_NOT_ADDED: new HockeyTrackerError(
+        'Team could not be added to player',
+        'TEAM_NOT_ADDED',
+        500
     ),
 };
