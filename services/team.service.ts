@@ -1,7 +1,11 @@
 import { PlayerErrors, TeamErrors } from '../helpers/error-helper';
 import { generateIdWithPrefix } from '../helpers/id-helper';
-import { GetPlayerByIdFromDatabase } from '../repository/player.repository';
 import {
+    AddTeamToPlayerByIdFromDatabase,
+    GetPlayerByIdFromDatabase,
+} from '../repository/player.repository';
+import {
+    AddPlayerToTeamInDatabase,
     GetTeamByIdFromDatabase,
     InsertTeamToDatabase,
     ITeam,
@@ -34,7 +38,6 @@ export const addPlayerToTeam = async (
     playerId: string,
     playerNumber: number
 ): Promise<ITeam> => {
-    // TODO: Find team and player, validate they exist else return an error
     const team = await GetTeamByIdFromDatabase(teamId);
 
     if (!team) {
@@ -55,7 +58,6 @@ export const addPlayerToTeam = async (
         throw TeamErrors.PLAYER_ALREADY_ON_TEAM;
     }
 
-    // TODO: Validate the player number is unique for the team
     const numberAlreadyInUse = team.players.some(
         (player) => player.number === playerNumber
     );
@@ -65,8 +67,33 @@ export const addPlayerToTeam = async (
     }
 
     // TODO: Update the team with the new player and their number
-    // TODO: Update the polayer with the team id and number
-    // TODO: Return the updated team
 
-    return {} as ITeam;
+    const newPlayer = {
+        playerId,
+        number: playerNumber,
+    };
+
+    const updatedTeamResult = await AddPlayerToTeamInDatabase(
+        newPlayer,
+        teamId
+    );
+
+    if (!updatedTeamResult || updatedTeamResult.modifiedCount === 0) {
+        throw TeamErrors.PLAYER_NOT_ADDED;
+    }
+
+    // TODO: Update the polayer with the team id and number
+
+    const updatedPlayerResult = await AddTeamToPlayerByIdFromDatabase(
+        { teamId, number: playerNumber },
+        playerId
+    );
+
+    if (!updatedPlayerResult || updatedPlayerResult.modifiedCount === 0) {
+        throw PlayerErrors.TEAM_NOT_ADDED;
+    }
+    // TODO: Return the updated team
+    team.players.push(newPlayer);
+
+    return team;
 };
