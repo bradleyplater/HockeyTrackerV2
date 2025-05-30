@@ -33,6 +33,7 @@ export const addTeamToDatabase = async (name: string) => {
  * @returns The updated team
 
  */
+// TODO: Refactor this code so that errors are thrown in the correct place
 export const addPlayerToTeam = async (
     teamId: string,
     playerId: string,
