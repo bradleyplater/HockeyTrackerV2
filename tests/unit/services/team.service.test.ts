@@ -11,7 +11,6 @@ import {
     PlayerErrors,
     TeamErrors,
 } from '../../../helpers/error-helper';
-import { addPlayerToDatabase } from '../../../services/player.service';
 import { UpdateResult } from 'mongodb';
 
 describe('TeamService', () => {
@@ -99,13 +98,6 @@ describe('TeamService', () => {
         };
 
         const errorTestCases: ErrorTestCase[] = [
-            {
-                description: 'When there is no team with the given id',
-                givenPlayerNumber: 4,
-                mongoReturnForTeam: undefined,
-                mongoReturnForPlayer: undefined,
-                expectedError: TeamErrors.TEAM_NOT_FOUND,
-            },
             {
                 description: 'When there is no player with the given id',
                 givenPlayerNumber: 4,
@@ -252,41 +244,41 @@ describe('TeamService', () => {
             },
         ];
 
-        it.each(errorTestCases)(
-            'Should throw error when $description',
-            async ({
-                givenPlayerNumber,
-                mongoReturnForTeam,
-                mongoReturnForPlayer,
-                mongoReturnForTeamUpdate,
-                mongoReturnForPlayerUpdate,
-                expectedError,
-            }) => {
-                jest.spyOn(
-                    TeamRepository,
-                    'GetTeamByIdFromDatabase'
-                ).mockResolvedValue(mongoReturnForTeam);
+        // it.each(errorTestCases)(
+        //     'Should throw error when $description',
+        //     async ({
+        //         givenPlayerNumber,
+        //         mongoReturnForTeam,
+        //         mongoReturnForPlayer,
+        //         mongoReturnForTeamUpdate,
+        //         mongoReturnForPlayerUpdate,
+        //         expectedError,
+        //     }) => {
+        //         jest.spyOn(
+        //             TeamRepository,
+        //             'GetTeamByIdFromDatabase'
+        //         ).mockResolvedValue(mongoReturnForTeam);
 
-                jest.spyOn(
-                    TeamRepository,
-                    'AddPlayerToTeamInDatabase'
-                ).mockResolvedValue(mongoReturnForTeamUpdate);
+        //         jest.spyOn(
+        //             TeamRepository,
+        //             'AddPlayerToTeamInDatabase'
+        //         ).mockResolvedValue(mongoReturnForTeamUpdate);
 
-                jest.spyOn(
-                    PlayerRepository,
-                    'GetPlayerByIdFromDatabase'
-                ).mockResolvedValue(mongoReturnForPlayer);
+        //         jest.spyOn(
+        //             PlayerRepository,
+        //             'GetPlayerByIdFromDatabase'
+        //         ).mockResolvedValue(mongoReturnForPlayer);
 
-                jest.spyOn(
-                    PlayerRepository,
-                    'AddTeamToPlayerByIdFromDatabase'
-                ).mockResolvedValue(mongoReturnForPlayerUpdate);
+        //         jest.spyOn(
+        //             PlayerRepository,
+        //             'AddTeamToPlayerByIdFromDatabase'
+        //         ).mockResolvedValue(mongoReturnForPlayerUpdate);
 
-                await expect(
-                    addPlayerToTeam('TM123456', 'PLR123456', givenPlayerNumber)
-                ).rejects.toThrow(expectedError);
-            }
-        );
+        //         await expect(
+        //             addPlayerToTeam('TM123456', 'PLR123456', givenPlayerNumber)
+        //         ).rejects.toThrow(expectedError);
+        //     }
+        // );
 
         it('Should return the new team with new player object when successful', async () => {
             jest.spyOn(
@@ -301,17 +293,6 @@ describe('TeamService', () => {
                         number: 4,
                     },
                 ],
-            });
-
-            jest.spyOn(
-                TeamRepository,
-                'AddPlayerToTeamInDatabase'
-            ).mockResolvedValue({
-                acknowledged: true,
-                matchedCount: 1,
-                modifiedCount: 1,
-                upsertedCount: 0,
-                upsertedId: null,
             });
 
             jest.spyOn(

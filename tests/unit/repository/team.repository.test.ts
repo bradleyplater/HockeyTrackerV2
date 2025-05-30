@@ -8,6 +8,7 @@ import {
     AddPlayerToTeamInDatabase,
     ITeamPlayerDetails,
 } from '../../../repository/team.repository';
+import { basicTeamMock } from '../helpers/team-mock';
 
 describe('InsertTeamToDatabase', () => {
     afterEach(() => {
@@ -106,25 +107,34 @@ describe('GetAllTeams', () => {
 });
 
 describe('GetTeamByIdFromDatabase', () => {
-    it('should call out to mongodb once', async () => {
-        const mockFind = jest.fn().mockReturnValue({});
+    it('When Mongo returns a team, should return it', async () => {
+        const mockFind = jest.fn().mockReturnValue(basicTeamMock);
 
         collections.team = { findOne: mockFind } as any;
 
-        await GetTeamByIdFromDatabase('TM123456');
-
-        expect(mockFind).toHaveBeenCalledTimes(1);
-        expect(mockFind).toHaveBeenCalledWith({ _id: 'TM123456' });
+        expect(await GetTeamByIdFromDatabase('TM123456')).toEqual(
+            basicTeamMock
+        );
     });
 
-    it('should not call out to mongodb once', async () => {
-        const mockFind = jest.fn().mockReturnValue({});
+    it('When Mongo does not return a team (null), should throw an error', async () => {
+        const mockFind = jest.fn().mockReturnValue(null);
 
-        collections.team = undefined as any;
+        collections.team = { findOne: mockFind } as any;
 
-        await GetTeamByIdFromDatabase('TM123456');
+        await expect(GetTeamByIdFromDatabase('TM123456')).rejects.toBe(
+            TeamErrors.TEAM_NOT_FOUND
+        );
+    });
 
-        expect(mockFind).not.toHaveBeenCalled();
+    it('When Mongo does not return a team (undefined), should throw an error', async () => {
+        const mockFind = jest.fn().mockReturnValue(undefined);
+
+        collections.team = { findOne: mockFind } as any;
+
+        await expect(GetTeamByIdFromDatabase('TM123456')).rejects.toBe(
+            TeamErrors.TEAM_NOT_FOUND
+        );
     });
 });
 
@@ -148,18 +158,18 @@ describe('AddPlayerToTeamInDatabase', () => {
         );
     });
 
-    it('should not call out to mongodb once', async () => {
+    it('Should throw error if mongo returns no result (null)', async () => {
         const mockPlayer: ITeamPlayerDetails = {
             playerId: 'PL123456',
             number: 4,
         };
 
-        const mockUpdateOne = jest.fn().mockReturnValue({});
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
 
-        collections.team = undefined as any;
+        collections.team = { updateOne: mockUpdateOne } as any;
 
-        await AddPlayerToTeamInDatabase(mockPlayer, 'TM123456');
-
-        expect(mockUpdateOne).not.toHaveBeenCalled();
+        await expect(
+            AddPlayerToTeamInDatabase(mockPlayer, 'TM123456')
+        ).rejects.toBe(TeamErrors.PLAYER_NOT_ADDED);
     });
 });

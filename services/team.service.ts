@@ -41,10 +41,6 @@ export const addPlayerToTeam = async (
 ): Promise<ITeam> => {
     const team = await GetTeamByIdFromDatabase(teamId);
 
-    if (!team) {
-        throw TeamErrors.TEAM_NOT_FOUND;
-    }
-
     const player = await GetPlayerByIdFromDatabase(playerId);
 
     if (!player) {
@@ -72,14 +68,7 @@ export const addPlayerToTeam = async (
         number: playerNumber,
     };
 
-    const updatedTeamResult = await AddPlayerToTeamInDatabase(
-        newPlayer,
-        teamId
-    );
-
-    if (!updatedTeamResult || updatedTeamResult.modifiedCount === 0) {
-        throw TeamErrors.PLAYER_NOT_ADDED;
-    }
+    await AddPlayerToTeamInDatabase(newPlayer, teamId);
 
     const updatedPlayerResult = await AddTeamToPlayerByIdFromDatabase(
         { teamId, number: playerNumber },
