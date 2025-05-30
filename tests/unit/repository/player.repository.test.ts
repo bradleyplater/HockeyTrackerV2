@@ -1,11 +1,17 @@
 import { collections } from '../../../repository/database';
 import {
+    AddTeamToPlayerByIdFromDatabase,
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
     InsertPlayerToDatabase,
+    IPlayerTeamDetails,
     RemovePlayerByIdFromDatabase,
     UpdatePlayerDetailsByIdFromDatabase,
 } from '../../../repository/player.repository';
+import {
+    AddPlayerToTeamInDatabase,
+    ITeamPlayerDetails,
+} from '../../../repository/team.repository';
 
 describe('InsertPlayerToDatabase', () => {
     it('should call out to mongodb to insert and find', async () => {
@@ -24,6 +30,7 @@ describe('InsertPlayerToDatabase', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            teams: [],
         });
 
         expect(mockFind).toHaveBeenCalledTimes(1);
@@ -44,6 +51,7 @@ describe('InsertPlayerToDatabase', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                teams: [],
             })
         ).rejects.toThrow('Player not created');
     });
@@ -65,6 +73,7 @@ describe('InsertPlayerToDatabase', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                teams: [],
             })
         ).rejects.toThrow('Player not created');
     });
@@ -152,6 +161,7 @@ describe('UpdatePlayerById Details', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            teams: [],
         });
 
         expect(mockUpdateOne).toHaveBeenCalledTimes(1);
@@ -175,7 +185,43 @@ describe('UpdatePlayerById Details', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            teams: [],
         });
+
+        expect(mockUpdateOne).not.toHaveBeenCalled();
+    });
+});
+
+describe('AddTeamToPlayerByIdFromDatabase', () => {
+    const mockTeam: IPlayerTeamDetails = {
+        teamId: 'PL123456',
+        number: 4,
+    };
+
+    it('should call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456');
+
+        expect(mockUpdateOne).toHaveBeenCalledTimes(1);
+        expect(mockUpdateOne).toHaveBeenCalledWith(
+            { _id: 'PLR123456' },
+            {
+                $push: {
+                    teams: mockTeam,
+                },
+            }
+        );
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.player = undefined as any;
+
+        await AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456');
 
         expect(mockUpdateOne).not.toHaveBeenCalled();
     });

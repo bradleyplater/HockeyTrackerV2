@@ -99,6 +99,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                teams: [],
             });
 
             const response = await request(app)
@@ -181,11 +182,13 @@ describe('Player Integration Tests', () => {
                     _id: 'PLR123456',
                     firstName: 'Bradley',
                     surname: 'Doe',
+                    teams: [],
                 },
                 {
                     _id: 'PLR654321',
                     firstName: 'Doe',
                     surname: 'Bradley',
+                    teams: [],
                 },
             ]);
 
@@ -199,11 +202,13 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                teams: [],
             });
             expect(response.body[1]).toEqual({
                 _id: 'PLR654321',
                 firstName: 'Doe',
                 surname: 'Bradley',
+                teams: [],
             });
         });
 
@@ -341,6 +346,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                teams: [],
             });
 
             const response = await request(app)
@@ -353,6 +359,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                teams: [],
             });
         });
 

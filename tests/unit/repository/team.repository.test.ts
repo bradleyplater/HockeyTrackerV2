@@ -1,8 +1,11 @@
 import { collections } from '../../../repository/database';
+import { IPlayer } from '../../../repository/player.repository';
 import {
     InsertTeamToDatabase,
     GetAllTeamsFromDatabase,
     GetTeamByIdFromDatabase,
+    AddPlayerToTeamInDatabase,
+    ITeamPlayerDetails,
 } from '../../../repository/team.repository';
 
 describe('InsertTeamToDatabase', () => {
@@ -112,5 +115,41 @@ describe('GetTeamByIdFromDatabase', () => {
         await GetTeamByIdFromDatabase('TM123456');
 
         expect(mockFind).not.toHaveBeenCalled();
+    });
+});
+
+describe('AddPlayerToTeamInDatabase', () => {
+    it('should call out to mongodb once', async () => {
+        const mockPlayer: ITeamPlayerDetails = {
+            playerId: 'PL123456',
+            number: 4,
+        };
+
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.team = { updateOne: mockUpdateOne } as any;
+
+        await AddPlayerToTeamInDatabase(mockPlayer, 'TM123456');
+
+        expect(mockUpdateOne).toHaveBeenCalledTimes(1);
+        expect(mockUpdateOne).toHaveBeenCalledWith(
+            { _id: 'TM123456' },
+            { $push: { players: mockPlayer } }
+        );
+    });
+
+    it('should not call out to mongodb once', async () => {
+        const mockPlayer: ITeamPlayerDetails = {
+            playerId: 'PL123456',
+            number: 4,
+        };
+
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.team = undefined as any;
+
+        await AddPlayerToTeamInDatabase(mockPlayer, 'TM123456');
+
+        expect(mockUpdateOne).not.toHaveBeenCalled();
     });
 });

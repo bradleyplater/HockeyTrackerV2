@@ -7,6 +7,9 @@ import {
     testApiKey,
 } from '../helpers/authenticationMock';
 import * as TeamRepository from '../../repository/team.repository';
+import * as TeamService from '../../services/team.service';
+import * as PlayerRepository from '../../repository/player.repository';
+import { TeamErrors } from '../../helpers/error-helper';
 
 describe('Team Intergration Tests', () => {
     describe('Post', () => {
@@ -228,5 +231,130 @@ describe('Team Intergration Tests', () => {
                 expect(response.status).toBe(expectedStatusCode);
             }
         );
+    });
+
+    describe('Add player to team', () => {
+        const endpoint = '/api/v2/team/addplayer/TM123456';
+
+        beforeEach(() => {});
+
+        afterEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+        });
+
+        const badAddPlayerCases = [
+            {
+                description: 'No api key sent',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: '',
+                body: { playerId: 'PLR123456', number: 23 },
+            },
+            {
+                description: 'Incorrect api key sent',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: 'incorrect key',
+                body: { playerId: 'PLR123456', number: 23 },
+            },
+            {
+                description: 'When no api keys are stored',
+                expectedStatus: StatusCodes.UNAUTHORIZED,
+                mockAuthKeyFunction: () => mockEmptyAuthKeys(),
+                apiKey: testApiKey,
+                body: { playerId: 'PLR123456', number: 23 },
+            },
+            {
+                description: 'When empty body is sent',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                body: {},
+            },
+            {
+                description: 'When playerId is missing',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                body: { number: 23 },
+            },
+            {
+                description: 'When number is missing',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+                body: { playerId: 'PLR123456' },
+            },
+        ];
+
+        it.each(badAddPlayerCases)(
+            '$expectedStatus - $description',
+            async ({ body, expectedStatus, mockAuthKeyFunction, apiKey }) => {
+                mockAuthKeyFunction();
+                const response = await request(app)
+                    .patch(endpoint)
+                    .set('x-api-key', apiKey)
+                    .send(body);
+
+                expect(response.status).toBe(expectedStatus);
+            }
+        );
+
+        it('400 - Team Service returns HockeyTracker error', async () => {
+            mockAuthKeys();
+
+            jest.spyOn(TeamService, 'addPlayerToTeam').mockRejectedValue(
+                TeamErrors.PLAYER_ALREADY_ON_TEAM
+            );
+
+            const response = await request(app)
+                .patch(endpoint)
+                .set('x-api-key', testApiKey)
+                .send({ playerId: 'PLR123456', number: 23 });
+
+            expect(response.status).toBe(StatusCodes.BAD_REQUEST);
+        });
+
+        it('500 - Team Service returns error', async () => {
+            mockAuthKeys();
+
+            jest.spyOn(TeamService, 'addPlayerToTeam').mockRejectedValue(
+                new Error()
+            );
+
+            const response = await request(app)
+                .patch(endpoint)
+                .set('x-api-key', testApiKey)
+                .send({ playerId: 'PLR123456', number: 23 });
+
+            expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
+        });
+
+        it('200 - Successfully added player to team', async () => {
+            mockAuthKeys();
+
+            const mockTeam = {
+                _id: 'TM123456',
+                name: 'Peterborough Warriors',
+                players: [{ playerId: 'PLR123456', number: 23 }],
+            };
+
+            jest.spyOn(TeamService, 'addPlayerToTeam').mockResolvedValue(
+                mockTeam as TeamRepository.ITeam
+            );
+
+            const response = await request(app)
+                .patch(endpoint)
+                .set('x-api-key', testApiKey)
+                .send({ playerId: 'PLR123456', number: 23 });
+
+            expect(response.status).toBe(StatusCodes.OK);
+            expect(response.body).toEqual({
+                _id: 'TM123456',
+                name: 'Peterborough Warriors',
+                players: [{ playerId: 'PLR123456', number: 23 }],
+            });
+        });
     });
 });
