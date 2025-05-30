@@ -83,6 +83,15 @@ describe('GetAllTeams', () => {
         expect(mockToArray).toHaveBeenCalledTimes(1);
     });
 
+    it('when mongo returns undefined return empty array', async () => {
+        const mockToArray = jest.fn().mockResolvedValue(null);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.team = { find: mockFind } as any;
+
+        expect(await GetAllTeamsFromDatabase()).toEqual([]);
+    });
+
     it('should not call out to mongodb once', async () => {
         const mockToArray = jest.fn().mockResolvedValue([]);
         const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });

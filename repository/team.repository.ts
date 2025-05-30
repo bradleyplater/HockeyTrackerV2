@@ -41,7 +41,9 @@ export async function InsertTeamToDatabase(team: ITeam) {
 }
 
 export async function GetAllTeamsFromDatabase() {
-    return await collections.team?.find<ITeam>({}).toArray();
+    const teams = await collections.team?.find<ITeam>({}).toArray();
+
+    return teams ?? [];
 }
 
 export async function GetTeamByIdFromDatabase(id: string) {
