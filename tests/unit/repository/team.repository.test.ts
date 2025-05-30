@@ -1,3 +1,4 @@
+import { TeamErrors } from '../../../helpers/error-helper';
 import { collections } from '../../../repository/database';
 import { IPlayer } from '../../../repository/player.repository';
 import {
@@ -44,7 +45,7 @@ describe('InsertTeamToDatabase', () => {
                 name: 'Team',
                 players: [],
             })
-        ).rejects.toThrow('Team not created');
+        ).rejects.toThrow(TeamErrors.TEAM_NOT_CREATED);
     });
 
     it('should throw error if team not returned from mongo', async () => {
@@ -65,7 +66,7 @@ describe('InsertTeamToDatabase', () => {
                 name: 'Team',
                 players: [],
             })
-        ).rejects.toThrow('Team not created');
+        ).rejects.toThrow(TeamErrors.TEAM_NOT_CREATED);
     });
 });
 

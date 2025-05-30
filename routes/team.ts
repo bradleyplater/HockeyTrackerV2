@@ -55,7 +55,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// TODO: Integration tests need writing for this method, Catch is currently not working.
 router.patch('/addplayer/:teamid', async (req, res) => {
     try {
         logger.LogRouteStarted('Add Player to Team');

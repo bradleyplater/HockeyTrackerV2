@@ -1,5 +1,6 @@
 import { InsertOneResult } from 'mongodb';
 import { collections } from './database';
+import { TeamErrors } from '../helpers/error-helper';
 
 /**
  * @description This is a type that contains the details of the team.
@@ -33,7 +34,7 @@ export async function InsertTeamToDatabase(team: ITeam) {
     });
 
     if (!storedPlayer) {
-        throw new Error('Team not created');
+        throw TeamErrors.TEAM_NOT_CREATED;
     }
 
     return storedPlayer;

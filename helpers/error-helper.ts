@@ -11,11 +11,6 @@ export class HockeyTrackerError extends Error {
 
 // Common errors
 export const TeamErrors = {
-    TEAM_NOT_FOUND: new HockeyTrackerError(
-        'Team not found',
-        'TEAM_NOT_FOUND',
-        404
-    ),
     PLAYER_ALREADY_ON_TEAM: new HockeyTrackerError(
         'Player is already in team',
         'PLAYER_ALREADY_IN_TEAM',
@@ -25,6 +20,16 @@ export const TeamErrors = {
         'Player number is already in use',
         'PLAYER_NUMBER_IN_USE',
         400
+    ),
+    TEAM_NOT_FOUND: new HockeyTrackerError(
+        'Team not found',
+        'TEAM_NOT_FOUND',
+        404
+    ),
+    TEAM_NOT_CREATED: new HockeyTrackerError(
+        'Team was not created',
+        'TEAM_NOT_CREATED',
+        500
     ),
     PLAYER_NOT_ADDED: new HockeyTrackerError(
         'Player could not be added to team',

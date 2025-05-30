@@ -67,8 +67,6 @@ export const addPlayerToTeam = async (
         throw TeamErrors.PLAYER_NUMBER_IN_USE;
     }
 
-    // TODO: Update the team with the new player and their number
-
     const newPlayer = {
         playerId,
         number: playerNumber,
@@ -82,8 +80,6 @@ export const addPlayerToTeam = async (
     if (!updatedTeamResult || updatedTeamResult.modifiedCount === 0) {
         throw TeamErrors.PLAYER_NOT_ADDED;
     }
-
-    // TODO: Update the polayer with the team id and number
 
     const updatedPlayerResult = await AddTeamToPlayerByIdFromDatabase(
         { teamId, number: playerNumber },
