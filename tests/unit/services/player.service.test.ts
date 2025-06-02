@@ -19,7 +19,7 @@ describe('PlayerService', () => {
     ];
 
     it.each(testCases)(
-        'Should call InsertPlayerToDatabase with firstname: $firstname, surname: $surname',
+        'Should call InsertPlayerToDatabase with firstname: $firstName, surname: $surname',
         async ({ firstName, surname }) => {
             const insertPlayerToDatabaseSpy = jest
                 .spyOn(PlayerRepository, 'InsertPlayerToDatabase')
@@ -27,16 +27,18 @@ describe('PlayerService', () => {
                     _id: 'PLR123456',
                     firstName,
                     surname,
+                    teams: [],
                 });
 
             jest.spyOn(IdHelper, 'generateIdWithPrefix').mockReturnValue(
                 'PLR123456'
             );
 
-            const expectedResult = {
+            const expectedResult: PlayerRepository.IPlayer = {
                 _id: 'PLR123456',
                 firstName,
                 surname,
+                teams: [],
             };
 
             await addPlayerToDatabase(firstName, surname);

@@ -1,11 +1,15 @@
+import { PlayerErrors } from '../../../helpers/error-helper';
 import { collections } from '../../../repository/database';
 import {
+    AddTeamToPlayerByIdFromDatabase,
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
     InsertPlayerToDatabase,
+    IPlayerTeamDetails,
     RemovePlayerByIdFromDatabase,
     UpdatePlayerDetailsByIdFromDatabase,
 } from '../../../repository/player.repository';
+import { basicPlayerMock } from '../../helpers/player-mock';
 
 describe('InsertPlayerToDatabase', () => {
     it('should call out to mongodb to insert and find', async () => {
@@ -24,6 +28,7 @@ describe('InsertPlayerToDatabase', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            teams: [],
         });
 
         expect(mockFind).toHaveBeenCalledTimes(1);
@@ -44,8 +49,9 @@ describe('InsertPlayerToDatabase', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                teams: [],
             })
-        ).rejects.toThrow('Player not created');
+        ).rejects.toThrow(PlayerErrors.PLAYER_NOT_CREATED);
     });
 
     it('should throw error if player not returned from mongo', async () => {
@@ -65,57 +71,89 @@ describe('InsertPlayerToDatabase', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                teams: [],
             })
-        ).rejects.toThrow('Player not created');
+        ).rejects.toThrow(PlayerErrors.PLAYER_NOT_CREATED);
     });
 });
 
 describe('GetAllPlayers', () => {
-    it('should call out to mongodb once', async () => {
-        const mockToArray = jest.fn().mockResolvedValue([]);
+    it('Should return found players', async () => {
+        const mockToArray = jest.fn().mockResolvedValue([basicPlayerMock]);
         const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
 
         collections.player = { find: mockFind } as any;
 
-        await GetAllPlayersFromDatabase();
-
-        expect(mockFind).toHaveBeenCalledTimes(1);
-        expect(mockToArray).toHaveBeenCalledTimes(1);
+        expect(await GetAllPlayersFromDatabase()).toEqual([basicPlayerMock]);
     });
 
-    it('should not call out to mongodb once', async () => {
-        const mockToArray = jest.fn().mockResolvedValue([]);
+    it('Should return empty array when mongo returns null', async () => {
+        const mockToArray = jest.fn().mockResolvedValue(null);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.player = { find: mockFind } as any;
+
+        expect(await GetAllPlayersFromDatabase()).toEqual([]);
+    });
+
+    it('Should return empty array when mongo returns undefined', async () => {
+        const mockToArray = jest.fn().mockResolvedValue(undefined);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.player = { find: mockFind } as any;
+
+        expect(await GetAllPlayersFromDatabase()).toEqual([]);
+    });
+
+    it('Should return empty array when mongo collection doesnt exist', async () => {
+        const mockToArray = jest.fn().mockResolvedValue(undefined);
         const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
 
         collections.player = undefined as any;
 
-        await GetAllPlayersFromDatabase();
-
-        expect(mockFind).not.toHaveBeenCalled();
-        expect(mockToArray).not.toHaveBeenCalled();
+        expect(await GetAllPlayersFromDatabase()).toEqual([]);
     });
 });
 
 describe('GetPlayerById', () => {
-    it('should call out to mongodb once', async () => {
-        const mockFind = jest.fn().mockReturnValue({});
+    it('Should return player when found', async () => {
+        const mockFind = jest.fn().mockReturnValue(basicPlayerMock);
 
         collections.player = { findOne: mockFind } as any;
 
-        await GetPlayerByIdFromDatabase('PLR123456');
-
-        expect(mockFind).toHaveBeenCalledTimes(1);
-        expect(mockFind).toHaveBeenCalledWith({ _id: 'PLR123456' });
+        expect(await GetPlayerByIdFromDatabase('PLR123456')).toEqual(
+            basicPlayerMock
+        );
     });
 
-    it('should not call out to mongodb once', async () => {
-        const mockFind = jest.fn().mockReturnValue({});
+    it('Should throw error when player not found: undefined', async () => {
+        const mockFind = jest.fn().mockReturnValue(undefined);
+
+        collections.player = { findOne: mockFind } as any;
+
+        await expect(GetPlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
+    });
+
+    it('Should throw error when player not found: null', async () => {
+        const mockFind = jest.fn().mockReturnValue(null);
+
+        collections.player = { findOne: mockFind } as any;
+
+        await expect(GetPlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
+    });
+
+    it('Should throw error when mongo collection doesnt exist', async () => {
+        const mockFind = jest.fn().mockReturnValue(null);
 
         collections.player = undefined as any;
 
-        await GetPlayerByIdFromDatabase('PLR123456');
-
-        expect(mockFind).not.toHaveBeenCalled();
+        await expect(GetPlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
     });
 });
 
@@ -131,14 +169,44 @@ describe('RemovePlayerById', () => {
         expect(mockDelete).toHaveBeenCalledWith({ _id: 'PLR123456' });
     });
 
-    it('should not call out to mongodb once', async () => {
-        const mockDelete = jest.fn().mockReturnValue({});
+    it('Should throw error if mongo returns null', async () => {
+        const mockDelete = jest.fn().mockReturnValue(null);
+
+        collections.player = { deleteOne: mockDelete } as any;
+
+        await expect(RemovePlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
+    });
+
+    it('Should throw error if mongo returns undefined', async () => {
+        const mockDelete = jest.fn().mockReturnValue(undefined);
+
+        collections.player = { deleteOne: mockDelete } as any;
+
+        await expect(RemovePlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
+    });
+
+    it('Should throw error if mongo returns deleted 0', async () => {
+        const mockDelete = jest.fn().mockReturnValue({ deletedCount: 0 });
+
+        collections.player = { deleteOne: mockDelete } as any;
+
+        await expect(RemovePlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
+    });
+
+    it('Should throw error if mongo collection doesnt exist', async () => {
+        const mockDelete = jest.fn().mockReturnValue({ deletedCount: 0 });
 
         collections.player = undefined as any;
 
-        await RemovePlayerByIdFromDatabase('PLR123456');
-
-        expect(mockDelete).not.toHaveBeenCalled();
+        await expect(RemovePlayerByIdFromDatabase('PLR123456')).rejects.toBe(
+            PlayerErrors.PLAYER_NOT_FOUND
+        );
     });
 });
 
@@ -152,6 +220,7 @@ describe('UpdatePlayerById Details', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            teams: [],
         });
 
         expect(mockUpdateOne).toHaveBeenCalledTimes(1);
@@ -166,17 +235,128 @@ describe('UpdatePlayerById Details', () => {
         );
     });
 
-    it('should not call out to mongodb once', async () => {
-        const mockUpdateOne = jest.fn().mockReturnValue({});
+    it('Should throw error if mongo returns null', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
+                _id: 'PLR123456',
+                firstName: 'John',
+                surname: 'Doe',
+                teams: [],
+            })
+        ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
+    });
+
+    it('Should throw error if mongo returns undefined', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(undefined);
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
+                _id: 'PLR123456',
+                firstName: 'John',
+                surname: 'Doe',
+                teams: [],
+            })
+        ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
+    });
+
+    it('Should throw error if mongo returns modifiedCount 0', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({ modifiedCount: 0 });
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
+                _id: 'PLR123456',
+                firstName: 'John',
+                surname: 'Doe',
+                teams: [],
+            })
+        ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
+    });
+
+    it('Should throw error if mongo collection doesnt exist', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({ modifiedCount: 0 });
 
         collections.player = undefined as any;
 
-        await UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
-            _id: 'PLR123456',
-            firstName: 'John',
-            surname: 'Doe',
-        });
+        await expect(
+            UpdatePlayerDetailsByIdFromDatabase('PLR123456', {
+                _id: 'PLR123456',
+                firstName: 'John',
+                surname: 'Doe',
+                teams: [],
+            })
+        ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
+    });
+});
 
-        expect(mockUpdateOne).not.toHaveBeenCalled();
+describe('AddTeamToPlayerByIdFromDatabase', () => {
+    const mockTeam: IPlayerTeamDetails = {
+        teamId: 'PL123456',
+        number: 4,
+    };
+
+    it('should call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456');
+
+        expect(mockUpdateOne).toHaveBeenCalledTimes(1);
+        expect(mockUpdateOne).toHaveBeenCalledWith(
+            { _id: 'PLR123456' },
+            {
+                $push: {
+                    teams: mockTeam,
+                },
+            }
+        );
+    });
+
+    it('Should throw error if mongo returns null', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_ADDED);
+    });
+
+    it('Should throw error if mongo returns undefined', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(undefined);
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_ADDED);
+    });
+
+    it('Should throw error if mongo returns modifiedCount 0', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({ modifiedCount: 0 });
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_ADDED);
+    });
+
+    it('Should throw error if mongo collection doesnt exist', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({ modifiedCount: 0 });
+
+        collections.player = undefined as any;
+
+        await expect(
+            AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_ADDED);
     });
 });
