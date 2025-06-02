@@ -1,6 +1,6 @@
-import { ITeam } from '../../../repository/team.repository';
+import { ITeam } from '../../repository/team.repository';
 
-export const basicTeamMock: ITeam = {
+export const getBasicTeamMock = (): ITeam => ({
     _id: 'TM123456',
     name: 'Team 1',
     players: [
@@ -13,4 +13,4 @@ export const basicTeamMock: ITeam = {
             number: 2,
         },
     ],
-};
+});

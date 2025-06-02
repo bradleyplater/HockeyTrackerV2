@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import * as logger from '../helpers/logger';
 import { addPlayerToTeam, addTeamToDatabase } from '../services/team.service';
 import { GetAllTeamsFromDatabase } from '../repository/team.repository';
-import { HockeyTrackerError } from '../helpers/error-helper';
+import { commonErrorHandler } from '../helpers/error-helper';
 const router = express.Router();
 
 router.use(ApiKeyValidation);
@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Create Team');
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 
@@ -38,12 +38,6 @@ router.get('/', async (req, res) => {
         logger.LogRouteStarted('Get All Teams');
         const teams = await GetAllTeamsFromDatabase();
 
-        if (teams === undefined || teams === null) {
-            logger.LogRouteUnsuccessfulFinished('Get All Teams (No Teams)');
-            res.status(StatusCodes.NOT_FOUND).send();
-            return;
-        }
-
         logger.LogRouteFinished('Get All Teams');
         res.status(StatusCodes.OK).json(teams).send();
     } catch (error) {
@@ -51,7 +45,7 @@ router.get('/', async (req, res) => {
         logger.LogRouteUnsuccessfulFinished(
             'Get All Teams (Internal Server Error)'
         );
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 
@@ -81,12 +75,7 @@ router.patch('/addplayer/:teamid', async (req, res) => {
             'Get All Teams (Internal Server Error)'
         );
 
-        if (error instanceof HockeyTrackerError) {
-            res.status(error.statusCode).send(error.message);
-            return;
-        }
-
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 

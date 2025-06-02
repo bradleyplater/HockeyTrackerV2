@@ -1,3 +1,6 @@
+import express from 'express';
+import { StatusCodes } from 'http-status-codes';
+
 export class HockeyTrackerError extends Error {
     constructor(
         message: string,
@@ -44,9 +47,23 @@ export const PlayerErrors = {
         'PLAYER_NOT_FOUND',
         404
     ),
+    PLAYER_NOT_CREATED: new HockeyTrackerError(
+        'Player was not created',
+        'PLAYER_NOT_CREATED',
+        500
+    ),
     TEAM_NOT_ADDED: new HockeyTrackerError(
         'Team could not be added to player',
         'TEAM_NOT_ADDED',
         500
     ),
+};
+
+export const commonErrorHandler = (error: any, res: express.Response) => {
+    if (error instanceof HockeyTrackerError) {
+        res.status(error.statusCode).send(error.message);
+        return;
+    }
+
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
 };

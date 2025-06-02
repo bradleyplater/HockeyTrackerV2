@@ -198,12 +198,12 @@ describe('Team Intergration Tests', () => {
         const notFoundTestCases = [
             {
                 description: 'When mongo returns null',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
+                expectedStatusCode: StatusCodes.OK,
                 mongoReturn: null,
             },
             {
                 description: 'When mongo returns undefined',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
+                expectedStatusCode: StatusCodes.OK,
                 mongoReturn: undefined,
             },
             {

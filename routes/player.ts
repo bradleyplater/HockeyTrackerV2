@@ -11,7 +11,7 @@ import {
 import { addPlayerToDatabase } from '../services/player.service';
 import { StatusCodes } from 'http-status-codes';
 import * as logger from '../helpers/logger';
-import { log } from 'console';
+import { commonErrorHandler } from '../helpers/error-helper';
 const router = express.Router();
 
 router.use(ApiKeyValidation);
@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Create Player');
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 
@@ -44,18 +44,13 @@ router.get('/', async (req, res) => {
         logger.LogRouteStarted('Get All Players');
         const players = await GetAllPlayersFromDatabase();
 
-        if (players === undefined || players === null) {
-            logger.LogRouteUnsuccessfulFinished('Get All Players (No Players)');
-            res.status(StatusCodes.NOT_FOUND).send();
-        }
-
         logger.LogRouteFinished('Get All Players');
         res.status(StatusCodes.OK).json(players).send();
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Get All Players');
 
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 
@@ -72,20 +67,12 @@ router.get('/:playerId', async (req, res) => {
 
         const player = await GetPlayerByIdFromDatabase(playerId);
 
-        if (player === undefined || player === null) {
-            logger.LogRouteUnsuccessfulFinished(
-                'Get Player By Id (No Player Exists)'
-            );
-            res.status(StatusCodes.NOT_FOUND).send();
-            return;
-        }
-
         logger.LogRouteFinished('Get Player By Id');
         res.status(StatusCodes.OK).json(player).send();
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Get Player By Id');
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 
@@ -100,22 +87,14 @@ router.delete('/:playerId', async (req, res) => {
             return;
         }
 
-        const deleteResponse = await RemovePlayerByIdFromDatabase(playerId);
-
-        if (deleteResponse === undefined || deleteResponse === null) {
-            throw new Error('Mongo Failed to delete');
-        } else if (deleteResponse.deletedCount === 0) {
-            logger.LogBadRequest('No player found to delete');
-            res.status(StatusCodes.NOT_FOUND).send();
-            return;
-        }
+        await RemovePlayerByIdFromDatabase(playerId);
 
         logger.LogRouteFinished('Delete Player');
         res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
         console.log(error);
 
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 
@@ -137,25 +116,14 @@ router.patch('/:playerId/details', async (req, res) => {
             return;
         }
 
-        const updateResponse = await UpdatePlayerDetailsByIdFromDatabase(
-            playerId,
-            updatedPlayer
-        );
-
-        if (updateResponse === undefined || updateResponse === null) {
-            throw new Error('Mongo Failed to update');
-        } else if (updateResponse.modifiedCount === 0) {
-            logger.LogBadRequest('No player found to delete');
-            res.status(StatusCodes.NOT_MODIFIED).send();
-            return;
-        }
+        await UpdatePlayerDetailsByIdFromDatabase(playerId, updatedPlayer);
 
         logger.LogRouteFinished('Updating Player Details');
         res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
         console.log(error);
 
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        commonErrorHandler(error, res);
     }
 });
 

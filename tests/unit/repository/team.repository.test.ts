@@ -8,7 +8,7 @@ import {
     AddPlayerToTeamInDatabase,
     ITeamPlayerDetails,
 } from '../../../repository/team.repository';
-import { basicTeamMock } from '../helpers/team-mock';
+import { getBasicTeamMock } from '../../helpers/team-mock';
 
 describe('InsertTeamToDatabase', () => {
     afterEach(() => {
@@ -108,12 +108,12 @@ describe('GetAllTeams', () => {
 
 describe('GetTeamByIdFromDatabase', () => {
     it('When Mongo returns a team, should return it', async () => {
-        const mockFind = jest.fn().mockReturnValue(basicTeamMock);
+        const mockFind = jest.fn().mockReturnValue(getBasicTeamMock());
 
         collections.team = { findOne: mockFind } as any;
 
         expect(await GetTeamByIdFromDatabase('TM123456')).toEqual(
-            basicTeamMock
+            getBasicTeamMock()
         );
     });
 
@@ -131,6 +131,16 @@ describe('GetTeamByIdFromDatabase', () => {
         const mockFind = jest.fn().mockReturnValue(undefined);
 
         collections.team = { findOne: mockFind } as any;
+
+        await expect(GetTeamByIdFromDatabase('TM123456')).rejects.toBe(
+            TeamErrors.TEAM_NOT_FOUND
+        );
+    });
+
+    it('When Mongo collection doesnt exist, should throw an error', async () => {
+        const mockFind = jest.fn().mockReturnValue(undefined);
+
+        collections.team = undefined as any;
 
         await expect(GetTeamByIdFromDatabase('TM123456')).rejects.toBe(
             TeamErrors.TEAM_NOT_FOUND
@@ -167,6 +177,21 @@ describe('AddPlayerToTeamInDatabase', () => {
         const mockUpdateOne = jest.fn().mockReturnValue(null);
 
         collections.team = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            AddPlayerToTeamInDatabase(mockPlayer, 'TM123456')
+        ).rejects.toBe(TeamErrors.PLAYER_NOT_ADDED);
+    });
+
+    it('Should throw error if mongo collection is not available', async () => {
+        const mockPlayer: ITeamPlayerDetails = {
+            playerId: 'PL123456',
+            number: 4,
+        };
+
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
+
+        collections.team = undefined as any;
 
         await expect(
             AddPlayerToTeamInDatabase(mockPlayer, 'TM123456')

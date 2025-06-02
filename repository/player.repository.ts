@@ -1,5 +1,6 @@
 import { InsertOneResult } from 'mongodb';
 import { collections } from './database';
+import { PlayerErrors } from '../helpers/error-helper';
 
 /**
  * @description
@@ -37,29 +38,41 @@ export async function InsertPlayerToDatabase(player: IPlayer) {
     });
 
     if (!storedPlayer) {
-        throw new Error('Player not created');
+        throw PlayerErrors.PLAYER_NOT_CREATED;
     }
 
     return storedPlayer;
 }
 
 export async function GetAllPlayersFromDatabase() {
-    return await collections.player?.find<IPlayer>({}).toArray();
+    const players = await collections.player?.find<IPlayer>({}).toArray();
+
+    return players ?? [];
 }
 
 export async function GetPlayerByIdFromDatabase(id: string) {
-    return await collections.player?.findOne<IPlayer>({ _id: id });
+    const player = await collections.player?.findOne<IPlayer>({ _id: id });
+
+    if (!player) {
+        throw PlayerErrors.PLAYER_NOT_FOUND;
+    }
+
+    return player;
 }
 
 export async function RemovePlayerByIdFromDatabase(id: string) {
-    return await collections.player?.deleteOne({ _id: id });
+    const deleteResult = await collections.player?.deleteOne({ _id: id });
+
+    if (!deleteResult || deleteResult.deletedCount === 0) {
+        throw PlayerErrors.PLAYER_NOT_FOUND;
+    }
 }
 
 export async function UpdatePlayerDetailsByIdFromDatabase(
     id: string,
     updatedDetails: IPlayer
 ) {
-    return await collections.player?.updateOne(
+    const updateResult = await collections.player?.updateOne(
         { _id: id },
         {
             $set: {
@@ -68,13 +81,17 @@ export async function UpdatePlayerDetailsByIdFromDatabase(
             },
         }
     );
+
+    if (!updateResult || updateResult.modifiedCount === 0) {
+        throw PlayerErrors.PLAYER_NOT_FOUND;
+    }
 }
 
 export async function AddTeamToPlayerByIdFromDatabase(
     team: IPlayerTeamDetails,
     playerId: string
 ) {
-    return await collections.player?.updateOne(
+    const updateResult = await collections.player?.updateOne(
         { _id: playerId },
         {
             $push: {
@@ -82,4 +99,8 @@ export async function AddTeamToPlayerByIdFromDatabase(
             },
         }
     );
+
+    if (!updateResult || updateResult.modifiedCount === 0) {
+        throw PlayerErrors.TEAM_NOT_ADDED;
+    }
 }

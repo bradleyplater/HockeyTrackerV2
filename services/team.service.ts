@@ -43,12 +43,8 @@ export const addPlayerToTeam = async (
 
     const player = await GetPlayerByIdFromDatabase(playerId);
 
-    if (!player) {
-        throw PlayerErrors.PLAYER_NOT_FOUND;
-    }
-
     const playersAlreadyOnTeam = team.players.some(
-        (teamPlayer) => teamPlayer.playerId === playerId
+        (teamPlayer) => teamPlayer.playerId === player._id
     );
 
     if (playersAlreadyOnTeam) {
@@ -69,16 +65,11 @@ export const addPlayerToTeam = async (
     };
 
     await AddPlayerToTeamInDatabase(newPlayer, teamId);
-
-    const updatedPlayerResult = await AddTeamToPlayerByIdFromDatabase(
+    await AddTeamToPlayerByIdFromDatabase(
         { teamId, number: playerNumber },
         playerId
     );
 
-    if (!updatedPlayerResult || updatedPlayerResult.modifiedCount === 0) {
-        throw PlayerErrors.TEAM_NOT_ADDED;
-    }
-    // TODO: Return the updated team
     team.players.push(newPlayer);
 
     return team;

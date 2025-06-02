@@ -7,7 +7,7 @@ import {
 } from '../helpers/authenticationMock';
 import * as PlayerRepository from '../../repository/player.repository';
 import { StatusCodes } from 'http-status-codes';
-import { DeleteResult } from 'mongodb';
+import { PlayerErrors } from '../../helpers/error-helper';
 
 describe('Player Integration Tests', () => {
     describe('Post', () => {
@@ -212,42 +212,21 @@ describe('Player Integration Tests', () => {
             });
         });
 
-        const notFoundTestCases = [
-            {
-                description: 'When mongo returns null',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
-                mongoReturn: null,
-            },
-            {
-                description: 'When mongo returns undefined',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
-                mongoReturn: undefined,
-            },
-            {
-                description: 'When mongo returns empty array',
-                expectedStatusCode: StatusCodes.OK,
-                mongoReturn: [],
-            },
-        ];
+        it('When HockeyTrackerError is thrown, correct status code is returned', async () => {
+            mockAuthKeys();
 
-        it.each(notFoundTestCases)(
-            '404 - When mongo returns ',
-            async ({ expectedStatusCode, mongoReturn }) => {
-                mockAuthKeys();
+            jest.spyOn(
+                PlayerRepository,
+                'GetAllPlayersFromDatabase'
+            ).mockRejectedValue(PlayerErrors.PLAYER_NOT_FOUND);
 
-                jest.spyOn(
-                    PlayerRepository,
-                    'GetAllPlayersFromDatabase'
-                ).mockResolvedValue(mongoReturn as PlayerRepository.IPlayer[]);
+            const response = await request(app)
+                .get('/api/v2/player')
+                .set('x-api-key', testApiKey)
+                .send();
 
-                const response = await request(app)
-                    .get('/api/v2/player')
-                    .set('x-api-key', testApiKey)
-                    .send();
-
-                expect(response.status).toBe(expectedStatusCode);
-            }
-        );
+            expect(response.status).toBe(StatusCodes.NOT_FOUND);
+        });
     });
 
     describe('Get player by id', () => {
@@ -363,37 +342,21 @@ describe('Player Integration Tests', () => {
             });
         });
 
-        const notFoundTestCases = [
-            {
-                description: 'When mongo returns null',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
-                mongoReturn: null,
-            },
-            {
-                description: 'When mongo returns undefined',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
-                mongoReturn: undefined,
-            },
-        ];
+        it('When HockeyTrackerError is thrown, correct status code is returned', async () => {
+            mockAuthKeys();
 
-        it.each(notFoundTestCases)(
-            '404 - When mongo returns ',
-            async ({ expectedStatusCode, mongoReturn }) => {
-                mockAuthKeys();
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockRejectedValue(PlayerErrors.PLAYER_NOT_FOUND);
 
-                jest.spyOn(
-                    PlayerRepository,
-                    'GetPlayerByIdFromDatabase'
-                ).mockResolvedValue(mongoReturn);
+            const response = await request(app)
+                .get(`/api/v2/player/${playerId}`)
+                .set('x-api-key', testApiKey)
+                .send();
 
-                const response = await request(app)
-                    .get(`/api/v2/player/${playerId}`)
-                    .set('x-api-key', testApiKey)
-                    .send();
-
-                expect(response.status).toBe(expectedStatusCode);
-            }
-        );
+            expect(response.status).toBe(StatusCodes.NOT_FOUND);
+        });
     });
 
     describe('Delete player by id', () => {
@@ -488,10 +451,7 @@ describe('Player Integration Tests', () => {
             jest.spyOn(
                 PlayerRepository,
                 'RemovePlayerByIdFromDatabase'
-            ).mockResolvedValue({
-                acknowledged: true,
-                deletedCount: 1,
-            });
+            ).mockResolvedValue();
 
             const response = await request(app)
                 .delete(`/api/v2/player/${playerId}`)
@@ -501,42 +461,21 @@ describe('Player Integration Tests', () => {
             expect(response.status).toBe(StatusCodes.NO_CONTENT);
         });
 
-        const notFoundTestCases = [
-            {
-                description: 'When no played is found',
-                expectedStatusCode: StatusCodes.NOT_FOUND,
-                mongoReturn: { acknowledged: true, deletedCount: 0 },
-            },
-            {
-                description: 'When mongo returns undefined',
-                expectedStatusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                mongoReturn: undefined,
-            },
-            {
-                description: 'When mongo returns null',
-                expectedStatusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                mongoReturn: null,
-            },
-        ];
+        it('When error is thrown, correct status code is returned', async () => {
+            mockAuthKeys();
 
-        it.each(notFoundTestCases)(
-            '$expectedStatusCode - $description',
-            async ({ expectedStatusCode, mongoReturn }) => {
-                mockAuthKeys();
+            jest.spyOn(
+                PlayerRepository,
+                'RemovePlayerByIdFromDatabase'
+            ).mockRejectedValue(PlayerErrors.PLAYER_NOT_FOUND);
 
-                jest.spyOn(
-                    PlayerRepository,
-                    'RemovePlayerByIdFromDatabase'
-                ).mockResolvedValue(mongoReturn as DeleteResult);
+            const response = await request(app)
+                .delete(`/api/v2/player/${playerId}`)
+                .set('x-api-key', testApiKey)
+                .send();
 
-                const response = await request(app)
-                    .delete(`/api/v2/player/${playerId}`)
-                    .set('x-api-key', testApiKey)
-                    .send();
-
-                expect(response.status).toBe(expectedStatusCode);
-            }
-        );
+            expect(response.status).toBe(StatusCodes.NOT_FOUND);
+        });
     });
 
     describe('Patch player by id (details)', () => {
@@ -654,58 +593,38 @@ describe('Player Integration Tests', () => {
             expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
-        const testCases = [
-            {
-                description: 'Successfully updated a player',
-                expectedStatusCode: StatusCodes.NO_CONTENT,
-                mongoReturn: {
-                    acknowledged: true,
-                    matchedCount: 1,
-                    modifiedCount: 1,
-                    upsertedCount: 1,
-                    upsertedId: '1234',
-                },
-            },
-            {
-                description: 'When no player is found',
-                expectedStatusCode: StatusCodes.NOT_MODIFIED,
-                mongoReturn: {
-                    acknowledged: true,
-                    matchedCount: 0,
-                    modifiedCount: 0,
-                    upsertedCount: 0,
-                    upsertedId: '1234',
-                },
-            },
-            {
-                description: 'When mongo returns undefined',
-                expectedStatusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                mongoReturn: undefined,
-            },
-            {
-                description: 'When mongo returns null',
-                expectedStatusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-                mongoReturn: undefined,
-            },
-        ];
+        it('Successfully updated a player', async () => {
+            mockAuthKeys();
 
-        it.each(testCases)(
-            '$expectedStatusCode - $description',
-            async ({ mongoReturn, expectedStatusCode }) => {
-                mockAuthKeys();
+            jest.spyOn(
+                PlayerRepository,
+                'UpdatePlayerDetailsByIdFromDatabase'
+            ).mockResolvedValue();
 
-                jest.spyOn(
-                    PlayerRepository,
-                    'UpdatePlayerDetailsByIdFromDatabase'
-                ).mockResolvedValue(mongoReturn);
+            const response = await request(app)
+                .patch(`/api/v2/player/PLR123456/details`)
+                .set('x-api-key', testApiKey)
+                .send({ firstName: 'Bradley', surname: 'Doe' });
 
-                const response = await request(app)
-                    .patch(`/api/v2/player/PLR123456/details`)
-                    .set('x-api-key', testApiKey)
-                    .send({ firstName: 'Bradley', surname: 'Doe' });
+            expect(response.status).toBe(StatusCodes.NO_CONTENT);
+        });
 
-                expect(response.status).toBe(expectedStatusCode);
-            }
-        );
+        it('When UpdatePlayerDetailsByIdFromDatabase throws error should return correct response', async () => {
+            mockAuthKeys();
+
+            jest.spyOn(
+                PlayerRepository,
+                'UpdatePlayerDetailsByIdFromDatabase'
+            ).mockRejectedValue(PlayerErrors.PLAYER_NOT_FOUND);
+
+            const response = await request(app)
+                .patch(`/api/v2/player/PLR123456/details`)
+                .set('x-api-key', testApiKey)
+                .send({ firstName: 'Bradley', surname: 'Doe' });
+
+            expect(response.status).toBe(
+                PlayerErrors.PLAYER_NOT_FOUND.statusCode
+            );
+        });
     });
 });
