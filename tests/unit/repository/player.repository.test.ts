@@ -7,8 +7,10 @@ import {
     InsertPlayerToDatabase,
     IPlayerTeamDetails,
     RemovePlayerByIdFromDatabase,
+    RemoveTeamFromPlayerInDatabase,
     UpdatePlayerDetailsByIdFromDatabase,
 } from '../../../repository/player.repository';
+import { RemovePlayerFromTeamInDatabase } from '../../../repository/team.repository';
 import { basicPlayerMock } from '../../helpers/player-mock';
 
 describe('InsertPlayerToDatabase', () => {
@@ -358,5 +360,65 @@ describe('AddTeamToPlayerByIdFromDatabase', () => {
         await expect(
             AddTeamToPlayerByIdFromDatabase(mockTeam, 'PLR123456')
         ).rejects.toBe(PlayerErrors.TEAM_NOT_ADDED);
+    });
+});
+
+describe('RemoveTeamFromPlayerByIdFromDatabase', () => {
+    it('should call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await RemoveTeamFromPlayerInDatabase('TM123456', 'PLR123456');
+
+        expect(mockUpdateOne).toHaveBeenCalledTimes(1);
+        expect(mockUpdateOne).toHaveBeenCalledWith(
+            { _id: 'PLR123456' },
+            {
+                $pull: {
+                    teams: { teamId: 'TM123456' },
+                },
+            }
+        );
+    });
+
+    it('Should throw error if mongo returns null', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            RemoveTeamFromPlayerInDatabase('TM123456', 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_REMOVED);
+    });
+
+    it('Should throw error if mongo returns undefined', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(undefined);
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            RemoveTeamFromPlayerInDatabase('TM123456', 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_REMOVED);
+    });
+
+    it('Should throw error if mongo returns modifiedCount 0', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({ modifiedCount: 0 });
+
+        collections.player = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            RemoveTeamFromPlayerInDatabase('TM123456', 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_REMOVED);
+    });
+
+    it('Should throw error if mongo collection doesnt exist', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({ modifiedCount: 0 });
+
+        collections.player = undefined as any;
+
+        await expect(
+            RemoveTeamFromPlayerInDatabase('TM123456', 'PLR123456')
+        ).rejects.toBe(PlayerErrors.TEAM_NOT_REMOVED);
     });
 });

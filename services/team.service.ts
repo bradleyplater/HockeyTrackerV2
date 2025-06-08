@@ -3,12 +3,14 @@ import { generateIdWithPrefix } from '../helpers/id-helper';
 import {
     AddTeamToPlayerByIdFromDatabase,
     GetPlayerByIdFromDatabase,
+    RemoveTeamFromPlayerInDatabase,
 } from '../repository/player.repository';
 import {
     AddPlayerToTeamInDatabase,
     GetTeamByIdFromDatabase,
     InsertTeamToDatabase,
     ITeam,
+    RemovePlayerFromTeamInDatabase,
 } from '../repository/team.repository';
 
 export const addTeamToDatabase = async (name: string) => {
@@ -31,9 +33,7 @@ export const addTeamToDatabase = async (name: string) => {
  * @param playerId The id of the player to add to the team
  * @param playerNumber The number of the player to add to the team (Must be unique for each team)
  * @returns The updated team
-
  */
-// TODO: Refactor this code so that errors are thrown in the correct place
 export const addPlayerToTeam = async (
     teamId: string,
     playerId: string,
@@ -43,11 +43,7 @@ export const addPlayerToTeam = async (
 
     const player = await GetPlayerByIdFromDatabase(playerId);
 
-    const playersAlreadyOnTeam = team.players.some(
-        (teamPlayer) => teamPlayer.playerId === player._id
-    );
-
-    if (playersAlreadyOnTeam) {
+    if (playerExistsOnTeam(team, player._id)) {
         throw TeamErrors.PLAYER_ALREADY_ON_TEAM;
     }
 
@@ -73,4 +69,24 @@ export const addPlayerToTeam = async (
     team.players.push(newPlayer);
 
     return team;
+};
+
+export const removePlayerFromTeam = async (
+    teamId: string,
+    playerId: string
+) => {
+    const team = await GetTeamByIdFromDatabase(teamId);
+
+    const player = await GetPlayerByIdFromDatabase(playerId);
+
+    if (!playerExistsOnTeam(team, player._id)) {
+        throw PlayerErrors.PLAYER_NOT_ON_TEAM;
+    }
+
+    await RemovePlayerFromTeamInDatabase(playerId, teamId);
+    await RemoveTeamFromPlayerInDatabase(teamId, playerId);
+};
+
+const playerExistsOnTeam = (team: ITeam, playerId: string) => {
+    return team.players.some((player) => player.playerId === playerId);
 };

@@ -5,6 +5,7 @@ import * as IdHelper from '../../../helpers/id-helper';
 import {
     addPlayerToTeam,
     addTeamToDatabase,
+    removePlayerFromTeam,
 } from '../../../services/team.service';
 import { PlayerErrors, TeamErrors } from '../../../helpers/error-helper';
 import { getBasicTeamMock } from '../../helpers/team-mock';
@@ -210,6 +211,89 @@ describe('TeamService', () => {
             expect(await addPlayerToTeam('TM123456', 'PLR123456', 13)).toEqual(
                 expectedResult
             );
+        });
+    });
+
+    describe('RemovePlayerFromTeam', () => {
+        it('Should throw error getting team throws an error', async () => {
+            jest.spyOn(
+                TeamRepository,
+                'GetTeamByIdFromDatabase'
+            ).mockRejectedValue(TeamErrors.TEAM_NOT_FOUND);
+
+            await expect(
+                removePlayerFromTeam('TM123456', 'PLR123456')
+            ).rejects.toThrow(TeamErrors.TEAM_NOT_FOUND);
+        });
+
+        it('Should throw error getting team throws an error', async () => {
+            jest.spyOn(
+                TeamRepository,
+                'GetTeamByIdFromDatabase'
+            ).mockResolvedValue(getBasicTeamMock());
+
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockRejectedValue(PlayerErrors.PLAYER_NOT_FOUND);
+
+            await expect(
+                removePlayerFromTeam('TM123456', 'PLR123456')
+            ).rejects.toThrow(PlayerErrors.PLAYER_NOT_FOUND);
+        });
+
+        it('Should throw error when player not on the team', async () => {
+            const team = getBasicTeamMock();
+
+            const player = generatePlayerMock('PLR123456');
+
+            jest.spyOn(
+                TeamRepository,
+                'GetTeamByIdFromDatabase'
+            ).mockResolvedValue(team);
+
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockResolvedValue(player);
+
+            await expect(
+                removePlayerFromTeam('TM123456', 'PLR123456')
+            ).rejects.toThrow(PlayerErrors.PLAYER_NOT_ON_TEAM);
+        });
+
+        it('Should call the remove methods when successful call', async () => {
+            jest.spyOn(
+                TeamRepository,
+                'GetTeamByIdFromDatabase'
+            ).mockResolvedValue({
+                _id: 'TM123456',
+                name: 'Peterborough Warriors',
+                players: [
+                    {
+                        playerId: 'PLR123456',
+                        number: 4,
+                    },
+                ],
+            });
+
+            jest.spyOn(
+                PlayerRepository,
+                'GetPlayerByIdFromDatabase'
+            ).mockResolvedValue(generatePlayerMock('PLR123456'));
+
+            const removeTeamSpy = jest
+                .spyOn(PlayerRepository, 'RemoveTeamFromPlayerInDatabase')
+                .mockResolvedValue(new Promise((resolve) => resolve()));
+
+            const removePlayerSpy = jest
+                .spyOn(TeamRepository, 'RemovePlayerFromTeamInDatabase')
+                .mockResolvedValue(new Promise((resolve) => resolve()));
+
+            await removePlayerFromTeam('TM123456', 'PLR123456');
+
+            expect(removeTeamSpy).toHaveBeenCalledTimes(1);
+            expect(removePlayerSpy).toHaveBeenCalledTimes(1);
         });
     });
 });

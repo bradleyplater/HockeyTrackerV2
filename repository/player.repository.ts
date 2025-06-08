@@ -104,3 +104,26 @@ export async function AddTeamToPlayerByIdFromDatabase(
         throw PlayerErrors.TEAM_NOT_ADDED;
     }
 }
+
+/**
+ * Will remove a team from a player in the database
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ *
+ * @param teamId ID of the team to remove from the player
+ * @param playerId Player to remove the team from
+ * @returns Promise<void>
+ */
+export async function RemoveTeamFromPlayerInDatabase(
+    teamId: string,
+    playerId: string
+) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId },
+        { $pull: { teams: { teamId: teamId } } }
+    );
+
+    if (!updateResult || updateResult.modifiedCount === 0) {
+        throw PlayerErrors.TEAM_NOT_REMOVED;
+    }
+}
