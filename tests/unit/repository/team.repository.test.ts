@@ -7,6 +7,7 @@ import {
     GetTeamByIdFromDatabase,
     AddPlayerToTeamInDatabase,
     ITeamPlayerDetails,
+    RemovePlayerFromTeamInDatabase,
 } from '../../../repository/team.repository';
 import { getBasicTeamMock } from '../../helpers/team-mock';
 
@@ -196,5 +197,41 @@ describe('AddPlayerToTeamInDatabase', () => {
         await expect(
             AddPlayerToTeamInDatabase(mockPlayer, 'TM123456')
         ).rejects.toBe(TeamErrors.PLAYER_NOT_ADDED);
+    });
+});
+
+describe('RemovePlayerFromTeamInDatabase', () => {
+    it('should call out to mongodb once', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue({});
+
+        collections.team = { updateOne: mockUpdateOne } as any;
+
+        await RemovePlayerFromTeamInDatabase('PLR123456', 'TM123456');
+
+        expect(mockUpdateOne).toHaveBeenCalledTimes(1);
+        expect(mockUpdateOne).toHaveBeenCalledWith(
+            { _id: 'TM123456' },
+            { $pull: { players: { playerId: 'PLR123456' } } }
+        );
+    });
+
+    it('Should throw error if mongo returns no result (null)', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
+
+        collections.team = { updateOne: mockUpdateOne } as any;
+
+        await expect(
+            RemovePlayerFromTeamInDatabase('PLR123456', 'TM123456')
+        ).rejects.toBe(TeamErrors.PLAYER_NOT_REMOVED);
+    });
+
+    it('Should throw error if mongo collection is not available', async () => {
+        const mockUpdateOne = jest.fn().mockReturnValue(null);
+
+        collections.team = undefined as any;
+
+        await expect(
+            RemovePlayerFromTeamInDatabase('PLR123456', 'TM123456')
+        ).rejects.toBe(TeamErrors.PLAYER_NOT_REMOVED);
     });
 });

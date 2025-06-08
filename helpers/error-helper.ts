@@ -39,6 +39,11 @@ export const TeamErrors = {
         'PLAYER_NOT_ADDED',
         500
     ),
+    PLAYER_NOT_REMOVED: new HockeyTrackerError(
+        'Player could not be removed from the team',
+        'PLAYER_NOT_REMOVED',
+        500
+    ),
 };
 
 export const PlayerErrors = {
@@ -52,9 +57,19 @@ export const PlayerErrors = {
         'PLAYER_NOT_CREATED',
         500
     ),
+    PLAYER_NOT_ON_TEAM: new HockeyTrackerError(
+        'Player is not on team',
+        'PLAYER_NOT_ON_TEAM',
+        404
+    ),
     TEAM_NOT_ADDED: new HockeyTrackerError(
         'Team could not be added to player',
         'TEAM_NOT_ADDED',
+        500
+    ),
+    TEAM_NOT_REMOVED: new HockeyTrackerError(
+        'Team could not be removed from player',
+        'TEAM_NOT_REMOVED',
         500
     ),
 };
