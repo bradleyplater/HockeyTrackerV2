@@ -3,7 +3,7 @@ import {
     LogRouteFinished,
     LogRouteStarted,
     LogRouteUnsuccessfulFinished,
-} from '../../../helpers/logger';
+} from '../../../src/helpers/logger';
 
 describe('Logger', () => {
     it('Calls console.log when you LogRouteStarted', () => {

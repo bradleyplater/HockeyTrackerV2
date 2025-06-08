@@ -6,10 +6,10 @@ import {
     mockEmptyAuthKeys,
     testApiKey,
 } from '../helpers/authenticationMock';
-import * as TeamRepository from '../../repository/team.repository';
-import * as TeamService from '../../services/team.service';
-import * as PlayerRepository from '../../repository/player.repository';
-import { PlayerErrors, TeamErrors } from '../../helpers/error-helper';
+import * as TeamRepository from '../../src/repository/team.repository';
+import * as TeamService from '../../src/services/team.service';
+import * as PlayerRepository from '../../src/repository/player.repository';
+import { PlayerErrors, TeamErrors } from '../../src/helpers/error-helper';
 
 describe('Team Intergration Tests', () => {
     describe('Post', () => {

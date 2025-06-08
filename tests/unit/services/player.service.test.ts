@@ -1,6 +1,6 @@
-import * as PlayerRepository from '../../../repository/player.repository';
-import * as IdHelper from '../../../helpers/id-helper';
-import { addPlayerToDatabase } from '../../../services/player.service';
+import * as PlayerRepository from '../../../src/repository/player.repository';
+import * as IdHelper from '../../../src/helpers/id-helper';
+import { addPlayerToDatabase } from '../../../src/services/player.service';
 
 describe('PlayerService', () => {
     const testCases = [

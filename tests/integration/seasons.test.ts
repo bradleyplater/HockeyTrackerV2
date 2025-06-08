@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
-import { collections } from '../../repository/database';
-import * as SeasonsRepository from '../../repository/seasons.repository';
+import { collections } from '../../src/repository/database';
+import * as SeasonsRepository from '../../src/repository/seasons.repository';
 import app from '../../server';
 import request from 'supertest';
 

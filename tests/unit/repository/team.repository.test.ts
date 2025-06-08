@@ -1,6 +1,6 @@
-import { TeamErrors } from '../../../helpers/error-helper';
-import { collections } from '../../../repository/database';
-import { IPlayer } from '../../../repository/player.repository';
+import { TeamErrors } from '../../../src/helpers/error-helper';
+import { collections } from '../../../src/repository/database';
+import { IPlayer } from '../../../src/repository/player.repository';
 import {
     InsertTeamToDatabase,
     GetAllTeamsFromDatabase,
@@ -8,7 +8,7 @@ import {
     AddPlayerToTeamInDatabase,
     ITeamPlayerDetails,
     RemovePlayerFromTeamInDatabase,
-} from '../../../repository/team.repository';
+} from '../../../src/repository/team.repository';
 import { getBasicTeamMock } from '../../helpers/team-mock';
 
 describe('InsertTeamToDatabase', () => {

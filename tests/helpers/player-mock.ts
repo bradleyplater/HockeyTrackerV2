@@ -1,4 +1,4 @@
-import { IPlayer } from '../../repository/player.repository';
+import { IPlayer } from '../../src/repository/player.repository';
 
 export const basicPlayerMock: IPlayer = {
     _id: 'PLR123456',

@@ -1,5 +1,5 @@
 import { configDotenv } from 'dotenv';
-import * as ApiKeyRepository from '../../repository/apiKey.repository';
+import * as ApiKeyRepository from '../../src/repository/apiKey.repository';
 
 export const testApiKey = 'q0ye8adok6kds4utr50h06';
 

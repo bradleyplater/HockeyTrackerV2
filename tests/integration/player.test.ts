@@ -5,9 +5,9 @@ import {
     mockEmptyAuthKeys,
     testApiKey,
 } from '../helpers/authenticationMock';
-import * as PlayerRepository from '../../repository/player.repository';
+import * as PlayerRepository from '../../src/repository/player.repository';
 import { StatusCodes } from 'http-status-codes';
-import { PlayerErrors } from '../../helpers/error-helper';
+import { PlayerErrors } from '../../src/helpers/error-helper';
 
 describe('Player Integration Tests', () => {
     describe('Post', () => {

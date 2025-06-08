@@ -2,7 +2,7 @@ import {
     isValidName,
     isValidPlayerId,
     isValidTeamName,
-} from '../../../helpers/validation-helper';
+} from '../../../src/helpers/validation-helper';
 
 describe('validation-helper', () => {
     describe('teamName validation', () => {
