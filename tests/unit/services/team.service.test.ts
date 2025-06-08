@@ -1,13 +1,13 @@
-import * as TeamRepository from '../../../repository/team.repository';
-import * as PlayerRepository from '../../../repository/player.repository';
+import * as TeamRepository from '../../../src/repository/team.repository';
+import * as PlayerRepository from '../../../src/repository/player.repository';
 
-import * as IdHelper from '../../../helpers/id-helper';
+import * as IdHelper from '../../../src/helpers/id-helper';
 import {
     addPlayerToTeam,
     addTeamToDatabase,
     removePlayerFromTeam,
-} from '../../../services/team.service';
-import { PlayerErrors, TeamErrors } from '../../../helpers/error-helper';
+} from '../../../src/services/team.service';
+import { PlayerErrors, TeamErrors } from '../../../src/helpers/error-helper';
 import { getBasicTeamMock } from '../../helpers/team-mock';
 
 describe('TeamService', () => {

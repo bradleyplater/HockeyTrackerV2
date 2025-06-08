@@ -1,6 +1,6 @@
-import { collections } from '../../../repository/database';
-import * as seasonsModule from '../../../repository/seasons.repository';
-import { GetAllSeasons } from '../../../repository/seasons.repository';
+import { collections } from '../../../src/repository/database';
+import * as seasonsModule from '../../../src/repository/seasons.repository';
+import { GetAllSeasons } from '../../../src/repository/seasons.repository';
 
 describe('GetAllSeasons', () => {
     it('should call out to mongodb once', async () => {

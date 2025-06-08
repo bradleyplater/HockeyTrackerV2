@@ -1,7 +1,7 @@
-import { GetAllApiKeys } from '../../../repository/apiKey.repository';
-import { collections } from '../../../repository/database';
-import * as seasonsModule from '../../../repository/seasons.repository';
-import { GetAllSeasons } from '../../../repository/seasons.repository';
+import { GetAllApiKeys } from '../../../src/repository/apiKey.repository';
+import { collections } from '../../../src/repository/database';
+import * as seasonsModule from '../../../src/repository/seasons.repository';
+import { GetAllSeasons } from '../../../src/repository/seasons.repository';
 
 describe('GetAllApiKeys', () => {
     it('should call out to mongodb once', async () => {

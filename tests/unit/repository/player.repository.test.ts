@@ -1,5 +1,5 @@
-import { PlayerErrors } from '../../../helpers/error-helper';
-import { collections } from '../../../repository/database';
+import { PlayerErrors } from '../../../src/helpers/error-helper';
+import { collections } from '../../../src/repository/database';
 import {
     AddTeamToPlayerByIdFromDatabase,
     GetAllPlayersFromDatabase,
@@ -9,8 +9,8 @@ import {
     RemovePlayerByIdFromDatabase,
     RemoveTeamFromPlayerInDatabase,
     UpdatePlayerDetailsByIdFromDatabase,
-} from '../../../repository/player.repository';
-import { RemovePlayerFromTeamInDatabase } from '../../../repository/team.repository';
+} from '../../../src/repository/player.repository';
+import { RemovePlayerFromTeamInDatabase } from '../../../src/repository/team.repository';
 import { basicPlayerMock } from '../../helpers/player-mock';
 
 describe('InsertPlayerToDatabase', () => {

@@ -1,9 +1,9 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
-import LivenessRouter from './routes/liveness';
-import SeasonsRouter from './routes/seasons';
-import PlayerRouter from './routes/player';
-import TeamRouter from './routes/team';
+import LivenessRouter from './src/routes/liveness';
+import SeasonsRouter from './src/routes/seasons';
+import PlayerRouter from './src/routes/player';
+import TeamRouter from './src/routes/team';
 
 import YAML from 'yamljs';
 const swaggerDocument = YAML.load('./swagger.yaml');

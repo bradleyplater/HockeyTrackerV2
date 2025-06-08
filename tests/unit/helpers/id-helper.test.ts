@@ -1,4 +1,4 @@
-import { generateIdWithPrefix } from '../../../helpers/id-helper';
+import { generateIdWithPrefix } from '../../../src/helpers/id-helper';
 
 describe('id-helper', () => {
     describe('Id Generator', () => {

@@ -1,0 +1,85 @@
+{
+    "_id": "GM123456",
+    "date": "2024-01-20T19:00:00.000Z",
+    "team": {
+        "id": "TM123456",
+        "roster": [
+            {
+                "playerId": "PL123456",
+                "teamId": "TM123456",
+                "statistics": {
+                    "goals": 2,
+                    "assists": 1,
+                    "penaltyMinutes": 2
+                }
+            },
+            {
+                "playerId": "PL789012",
+                "teamId": "TM789012",
+                "statistics": {
+                    "goals": 1,
+                    "assists": 1,
+                    "penaltyMinutes": 0
+                }
+            }
+        ],
+        "goals": [
+            {
+                "scoredBy": "PL123456",
+                "assist1": "PL789012",
+                "assist2": null,
+                "minute": 10,
+                "second": 30
+            }
+        ],
+        "penalties": [
+            {
+                "playerId": "PL123456",
+                "type": "TRIP",
+                "minute": 20,
+                "second": 0,
+                "duration": 2
+            }
+        ]
+    },
+    "awayTeam": {
+        "name": "Peterborough Warriors",
+        "goals": [
+            {
+                "scoredBy": "John Smith",
+                "minute": 10,
+                "second": 30
+            }
+        ],
+        "penalties": [
+            {
+                "playerName": "John Smith",
+                "type": "TRIP",
+                "minute": 20,
+                "second": 0,
+                "duration": 2
+            }
+        ]
+    },
+    "score": {
+        "team": 3,
+        "opponent": 2,
+        "periods": [
+            {
+                "number": 1,
+                "teamScore": 1,
+                "opponentScore": 0
+            },
+            {
+                "number": 2,
+                "teamScore": 1,
+                "opponentScore": 2
+            },
+            {
+                "number": 3,
+                "teamScore": 1,
+                "opponentScore": 0
+            }
+        ]
+    }
+}

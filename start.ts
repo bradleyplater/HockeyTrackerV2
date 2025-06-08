@@ -1,4 +1,4 @@
-import { connectToDatabase } from './repository/database';
+import { connectToDatabase } from './src/repository/database';
 import app from './server';
 
 connectToDatabase()
