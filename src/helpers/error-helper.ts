@@ -74,6 +74,14 @@ export const PlayerErrors = {
     ),
 };
 
+export const GameErrors = {
+    GAME_NOT_CREATED: new HockeyTrackerError(
+        'Game was not created',
+        'GAME_NOT_CREATED',
+        500
+    ),
+};
+
 export const commonErrorHandler = (error: any, res: express.Response) => {
     if (error instanceof HockeyTrackerError) {
         res.status(error.statusCode).send(error.message);

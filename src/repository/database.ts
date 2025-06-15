@@ -4,12 +4,14 @@ import { IApiKey } from './apiKey.repository';
 import { ISeason } from './seasons.repository';
 import { IPlayer } from './player.repository';
 import { ITeam } from './team.repository';
+import { IGame } from '../types/GameTypes';
 
 export interface IHockeyTrackerCollections {
     seasons?: Collection<ISeason>;
     apiKeys?: Collection<IApiKey>;
     player?: Collection<IPlayer>;
     team?: Collection<ITeam>;
+    game?: Collection<IGame>;
 }
 
 export const collections: IHockeyTrackerCollections = {};
@@ -32,11 +34,13 @@ export async function connectToDatabase() {
     const playerCollection: Collection<IPlayer> =
         db.collection<IPlayer>('Player');
     const teamCollection: Collection<ITeam> = db.collection<ITeam>('Team');
+    const gameCollection: Collection<IGame> = db.collection<IGame>('Game');
 
     collections.seasons = seasonsCollection;
     collections.apiKeys = apiKeyCollection;
     collections.player = playerCollection;
     collections.team = teamCollection;
+    collections.game = gameCollection;
 
     console.log(
         `Successfully connected to database: ${db.databaseName} and collections: `

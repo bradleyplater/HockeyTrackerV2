@@ -1,75 +1,75 @@
-export interface Game {
+export interface IGame {
     _id: string;
     date: Date;
-    team: TeamGameTeam; // create type
-    opponentTeam: OpponentGameTeam; // create type
-    score: GameScore; // create type
+    team: ITeamGameTeam; // create type
+    opponentTeam: IOpponentGameTeam; // create type
+    score: IGameScore; // create type
 }
 
 /**
  * Team which is creating the game
  */
-export interface TeamGameTeam {
+export interface ITeamGameTeam {
     id: string;
-    roster: GamePlayer[];
-    goals: GameTeamGoals[];
-    penalties: GameTeamPenalty[];
+    roster: IGamePlayer[];
+    goals: IGameTeamGoals[];
+    penalties: IGameTeamPenalty[];
 }
 
-export interface OpponentGameTeam {
+export interface IOpponentGameTeam {
     name: string;
-    goals: GameOpponentGoals[]; // creat type
-    penalties: GameOpponentPenalty[]; // create type
+    goals: IGameOpponentGoals[]; // creat type
+    penalties: IGameOpponentPenalty[]; // create type
 }
 
-export interface GamePlayer {
+export interface IGamePlayer {
     playerId: string;
     teamId: string;
-    stats: GamePlayerStats;
+    stats: IGamePlayerStats;
 }
 
-export interface GamePlayerStats {
+export interface IGamePlayerStats {
     goals: number;
     assists: number;
     pims: number;
 }
 
-export interface GameTeamGoals extends BaseGameStat {
+export interface IGameTeamGoals extends IBaseGameStat {
     scoredBy: string; // playerId
     assist1: string; // playerId
     assist2: string; // playerId
     type: GoalTypes;
 }
 
-export interface GameOpponentGoals extends BaseGameStat {
+export interface IGameOpponentGoals extends IBaseGameStat {
     name: string; // name of player
     type: GoalTypes;
 }
 
-export interface GameTeamPenalty extends BaseGameStat {
+export interface IGameTeamPenalty extends IBaseGameStat {
     playerId: string;
     type: PenaltyType;
     duration: number; // in minutes
 }
 
-export interface GameOpponentPenalty extends BaseGameStat {
+export interface IGameOpponentPenalty extends IBaseGameStat {
     name: string; // name of player
     type: PenaltyType;
     duration: number; // in minutes
 }
 
-export interface BaseGameStat {
+export interface IBaseGameStat {
     minute: number;
     second: number;
 }
 
-export interface GameScore {
+export interface IGameScore {
     team: number;
     opponent: number;
-    periods: GamePeriodScore[];
+    periods: IGamePeriodScore[];
 }
 
-export interface GamePeriodScore {
+export interface IGamePeriodScore {
     number: number;
     team: number;
     opponent: number;
