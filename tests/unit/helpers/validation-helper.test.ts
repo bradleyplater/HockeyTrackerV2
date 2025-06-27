@@ -1,6 +1,7 @@
 import {
     isValidName,
     isValidPlayerId,
+    isValidTeamId,
     isValidTeamName,
 } from '../../../src/helpers/validation-helper';
 
@@ -166,6 +167,53 @@ describe('validation-helper', () => {
                 expect(isValidPlayerId(playerdId as string)).toBe(
                     expectedResponse
                 );
+            }
+        );
+    });
+
+    describe('teamId', () => {
+        const testCases = [
+            {
+                description:
+                    'A teamId with uppercase prefix and 6 digits should be accepted',
+                teamId: 'TM123456',
+                expectedResponse: true,
+            },
+            {
+                description:
+                    'A teamId with lowercase prefix and 6 digits should not accepted',
+                teamId: 'tm123456',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A teamId with no prefix and 6 digits should not accepted',
+                teamId: '123456',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A teamId with prefix and 5 digits should not accepted',
+                teamId: 'TM12345',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A teamId with prefix and 7 digits should not accepted',
+                teamId: 'TM1234567',
+                expectedResponse: false,
+            },
+            {
+                description: 'A teamId that is undefined should not accepted',
+                teamId: undefined,
+                expectedResponse: false,
+            },
+        ];
+
+        it.each(testCases)(
+            '$description - $teamId',
+            ({ teamId, expectedResponse }) => {
+                expect(isValidTeamId(teamId as string)).toBe(expectedResponse);
             }
         );
     });
