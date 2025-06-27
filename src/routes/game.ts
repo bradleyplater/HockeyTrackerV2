@@ -7,6 +7,7 @@ import { commonErrorHandler } from '../helpers/error-helper';
 import { IGamePostBody } from '../types/GameTypes';
 import {
     isValidName,
+    isValidPlayerId,
     isValidTeamId,
     isValidTeamName,
 } from '../helpers/validation-helper';
@@ -51,6 +52,20 @@ const ValidatePostGameBody = (body: IGamePostBody): boolean => {
 
     if (!isValidTeamId(body.team)) {
         console.log('Invalid Team', body.team);
+        return false;
+    }
+
+    if (!body.teamRoster) {
+        console.log('Invalid Team Roster', body.teamRoster);
+        return false;
+    }
+
+    const invalidPlayers = body.teamRoster.filter((playerId) => {
+        return !isValidPlayerId(playerId);
+    });
+
+    if (invalidPlayers.length > 0) {
+        console.log('Invalid Players', invalidPlayers);
         return false;
     }
 

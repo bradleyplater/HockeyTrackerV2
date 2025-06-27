@@ -8,10 +8,17 @@ import request from 'supertest';
 import app from '../../server';
 import * as GameService from '../../src/services/game.service';
 import { generateGameMock, generateGameResponse } from '../helpers/game-mock';
+import { IGamePostBody } from '../../src/types/GameTypes';
 
 describe('Game Integration Tests', () => {
     describe('POST /game', () => {
         const endpoint = '/api/v2/game';
+        const validBody: IGamePostBody = {
+            date: '2024-01-20T19:00:00.000Z',
+            opponentName: 'Test Team',
+            team: 'TM123456',
+            teamRoster: ['PLR123456', 'PLR123456'],
+        };
 
         const badPostBodyCases = [
             {
@@ -39,14 +46,36 @@ describe('Game Integration Tests', () => {
                 description: 'When date is not a valid date',
                 expectedStatus: StatusCodes.BAD_REQUEST,
                 body: { date: 'fsdfsd' },
-                mockAuthKeyFunction: () => mockEmptyAuthKeys(),
+                mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
             {
                 description: 'When opponent team is not a valid name',
                 expectedStatus: StatusCodes.BAD_REQUEST,
                 body: { date: '2024-01-20T19:00:00.000Z', opponentTeam: '' },
-                mockAuthKeyFunction: () => mockEmptyAuthKeys(),
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'When team is not a valid teamId',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                body: {
+                    date: '2024-01-20T19:00:00.000Z',
+                    opponentTeam: 'Test Team',
+                    team: '',
+                },
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'When teamRoster is undefined',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                body: {
+                    date: '2024-01-20T19:00:00.000Z',
+                    opponentTeam: 'Test Team',
+                    team: 'TM123456',
+                },
+                mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
         ];
@@ -74,7 +103,7 @@ describe('Game Integration Tests', () => {
             const response = await request(app)
                 .post(endpoint)
                 .set('x-api-key', testApiKey)
-                .send();
+                .send(validBody);
 
             expect(response.status).toBe(StatusCodes.CREATED);
             expect(response.body).toEqual(generateGameResponse());
@@ -90,7 +119,7 @@ describe('Game Integration Tests', () => {
             const response = await request(app)
                 .post(endpoint)
                 .set('x-api-key', testApiKey)
-                .send();
+                .send(validBody);
 
             expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
