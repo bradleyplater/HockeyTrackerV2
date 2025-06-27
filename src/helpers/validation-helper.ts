@@ -1,5 +1,5 @@
 const nameRegex = /^[A-Za-z'-]{2,30}$/;
-const teawmNameRegex = /^[A-Za-z.' -]{3,30}$/;
+const teamNameRegex = /^[A-Za-z.' -]{3,30}$/;
 
 const playerIdRegex = /^PLR\d{6}$/;
 const teamIdRegex = /^TM\d{6}$/;
@@ -15,7 +15,7 @@ export const isValidTeamName = (name: string): boolean => {
 
     if (name.trim() === '') return false;
 
-    return isValidString(teawmNameRegex, name);
+    return isValidString(teamNameRegex, name);
 };
 
 export const isValidPlayerId = (playerId: string): boolean => {

@@ -3,7 +3,7 @@ import { IGame } from '../types/GameTypes';
 import { collections } from './database';
 import { GameErrors } from '../helpers/error-helper';
 
-export async function InsertGameToDatabase(game: IGame) {
+export async function InsertGameToDatabase(game: IGame): Promise<IGame> {
     const result = (await collections.game?.insertOne(
         game
     )) as InsertOneResult<IGame>;

@@ -9,8 +9,6 @@ import {
 } from '../../src/types/GameTypes';
 
 export const generateGameMock = (): IGame => {
-    const now = new Date();
-
     const mockPlayers: IGamePlayer[] = [
         {
             playerId: 'player-1',
@@ -114,7 +112,7 @@ export const generateGameMock = (): IGame => {
 
     return {
         _id: 'game-1',
-        date: now,
+        date: new Date('2025-06-15T12:12:00.029Z'),
         team: {
             id: 'team-1',
             roster: mockPlayers,
@@ -128,4 +126,10 @@ export const generateGameMock = (): IGame => {
         },
         score: mockScore,
     };
+};
+
+export const generateGameResponse = () => {
+    const response = generateGameMock() as any;
+    response.date = response.date.toISOString();
+    return response;
 };

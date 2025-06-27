@@ -4,6 +4,12 @@ import * as logger from '../helpers/logger';
 import { CreateGame } from '../services/game.service';
 import { StatusCodes } from 'http-status-codes';
 import { commonErrorHandler } from '../helpers/error-helper';
+import { IGamePostBody } from '../types/GameTypes';
+import {
+    isValidName,
+    isValidTeamId,
+    isValidTeamName,
+} from '../helpers/validation-helper';
 
 const router = express.Router();
 
@@ -14,11 +20,11 @@ router.post('/', async (req, res) => {
     try {
         logger.LogRouteStarted('Create Game');
 
-        // if (!ValidatePostTeamBody(body)) {
-        //     logger.LogBadRequest('Invalid Body');
-        //     res.status(StatusCodes.BAD_REQUEST).send();
-        //     return;
-        // }
+        if (!ValidatePostGameBody(req.body)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
 
         const game = await CreateGame();
 
@@ -30,5 +36,25 @@ router.post('/', async (req, res) => {
         commonErrorHandler(error, res);
     }
 });
+
+const ValidatePostGameBody = (body: IGamePostBody): boolean => {
+    const date = new Date(body.date);
+    if (isNaN(date.getTime())) {
+        console.log('Invalid Date', body.date);
+        return false;
+    }
+
+    if (!isValidTeamName(body.opponentName)) {
+        console.log('Invalid Opponent Team', body.opponentName);
+        return false;
+    }
+
+    if (!isValidTeamId(body.team)) {
+        console.log('Invalid Team', body.team);
+        return false;
+    }
+
+    return true;
+};
 
 export default router;

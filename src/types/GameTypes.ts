@@ -75,6 +75,13 @@ export interface IGamePeriodScore {
     opponent: number;
 }
 
+export interface IGamePostBody {
+    date: string; // date in ISO format;
+    team: string;
+    teamRoster: string[];
+    opponentName: string;
+}
+
 type GoalTypes = 'EVEN' | 'SH' | 'PP';
 
 export type PenaltyType =
