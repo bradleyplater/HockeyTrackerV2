@@ -18,27 +18,28 @@ describe('Game Integration Tests', () => {
             opponentName: 'Test Team',
             team: 'TM123456',
             teamRoster: ['PLR123456', 'PLR123456'],
+            seasonId: 'SSN2324',
         };
 
         const badPostBodyCases = [
             {
                 description: 'No api key sent',
                 expectedStatus: StatusCodes.UNAUTHORIZED,
-                body: { firstName: 'Bradley', surname: 'Doe' },
+                body: {},
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: '',
             },
             {
                 description: 'Incorrect api key sent',
                 expectedStatus: StatusCodes.UNAUTHORIZED,
-                body: { firstName: 'Bradley', surname: 'Doe' },
+                body: {},
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: 'incorrect key',
             },
             {
                 description: 'When no api keys are stored',
                 expectedStatus: StatusCodes.UNAUTHORIZED,
-                body: { firstName: 'Bradley', surname: 'Doe' },
+                body: {},
                 mockAuthKeyFunction: () => mockEmptyAuthKeys(),
                 apiKey: testApiKey,
             },
@@ -52,7 +53,7 @@ describe('Game Integration Tests', () => {
             {
                 description: 'When opponent team is not a valid name',
                 expectedStatus: StatusCodes.BAD_REQUEST,
-                body: { date: '2024-01-20T19:00:00.000Z', opponentTeam: '' },
+                body: { date: '2024-01-20T19:00:00.000Z', opponentName: '' },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
             },
@@ -61,7 +62,7 @@ describe('Game Integration Tests', () => {
                 expectedStatus: StatusCodes.BAD_REQUEST,
                 body: {
                     date: '2024-01-20T19:00:00.000Z',
-                    opponentTeam: 'Test Team',
+                    opponentName: 'Test Team',
                     team: '',
                 },
                 mockAuthKeyFunction: () => mockAuthKeys(),
@@ -72,8 +73,46 @@ describe('Game Integration Tests', () => {
                 expectedStatus: StatusCodes.BAD_REQUEST,
                 body: {
                     date: '2024-01-20T19:00:00.000Z',
-                    opponentTeam: 'Test Team',
+                    opponentName: 'Test Team',
                     team: 'TM123456',
+                },
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'When seasonId is not a valid seasonId',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                body: {
+                    date: '2024-01-20T19:00:00.000Z',
+                    opponentName: 'Test Team',
+                    team: 'TM123456',
+                    seasonId: 'SSN',
+                },
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'When team roster is undefined',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                body: {
+                    date: '2024-01-20T19:00:00.000Z',
+                    opponentName: 'Test Team',
+                    team: 'TM123456',
+                    seasonId: 'SSN1234',
+                    teamRoster: undefined,
+                },
+                mockAuthKeyFunction: () => mockAuthKeys(),
+                apiKey: testApiKey,
+            },
+            {
+                description: 'When team roster contains invalid playerIds',
+                expectedStatus: StatusCodes.BAD_REQUEST,
+                body: {
+                    date: '2024-01-20T19:00:00.000Z',
+                    opponentName: 'Test Team',
+                    team: 'TM123456',
+                    seasonId: 'SSN1234',
+                    teamRoster: ['PLR12345'],
                 },
                 mockAuthKeyFunction: () => mockAuthKeys(),
                 apiKey: testApiKey,
@@ -82,7 +121,13 @@ describe('Game Integration Tests', () => {
 
         it.each(badPostBodyCases)(
             '$expectedStatus - $description',
-            async ({ body, expectedStatus, mockAuthKeyFunction, apiKey }) => {
+            async ({
+                body,
+                expectedStatus,
+                mockAuthKeyFunction,
+                apiKey,
+                description,
+            }) => {
                 mockAuthKeyFunction();
                 const response = await request(app)
                     .post(endpoint)

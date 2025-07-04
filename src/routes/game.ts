@@ -8,6 +8,7 @@ import { IGamePostBody } from '../types/GameTypes';
 import {
     isValidName,
     isValidPlayerId,
+    isValidSeasonId,
     isValidTeamId,
     isValidTeamName,
 } from '../helpers/validation-helper';
@@ -27,7 +28,7 @@ router.post('/', async (req, res) => {
             return;
         }
 
-        const game = await CreateGame();
+        const game = await CreateGame(req.body as IGamePostBody);
 
         logger.LogRouteFinished('Create Game');
         res.status(StatusCodes.CREATED).json(game).send();
@@ -55,6 +56,11 @@ const ValidatePostGameBody = (body: IGamePostBody): boolean => {
         return false;
     }
 
+    if (!isValidSeasonId(body.seasonId)) {
+        console.log('Invalid Season id', body.seasonId);
+        return false;
+    }
+
     if (!body.teamRoster) {
         console.log('Invalid Team Roster', body.teamRoster);
         return false;
@@ -68,6 +74,8 @@ const ValidatePostGameBody = (body: IGamePostBody): boolean => {
         console.log('Invalid Players', invalidPlayers);
         return false;
     }
+
+    // Potentially validate against duplicate players
 
     return true;
 };

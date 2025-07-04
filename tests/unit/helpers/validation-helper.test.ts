@@ -1,6 +1,7 @@
 import {
     isValidName,
     isValidPlayerId,
+    isValidSeasonId,
     isValidTeamId,
     isValidTeamName,
 } from '../../../src/helpers/validation-helper';
@@ -214,6 +215,55 @@ describe('validation-helper', () => {
             '$description - $teamId',
             ({ teamId, expectedResponse }) => {
                 expect(isValidTeamId(teamId as string)).toBe(expectedResponse);
+            }
+        );
+    });
+
+    describe('seasonId', () => {
+        const testCases = [
+            {
+                description:
+                    'A seasonId with uppercase prefix and 4 digits should be accepted',
+                seasonId: 'SSN2222',
+                expectedResponse: true,
+            },
+            {
+                description:
+                    'A seasonId with lowercase prefix and 4 digits should not accepted',
+                seasonId: 'ssn2222',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A seasonId with no prefix and 4 digits should not accepted',
+                seasonId: '1234',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A seasonId with prefix and 3 digits should not accepted',
+                seasonId: 'SSN123',
+                expectedResponse: false,
+            },
+            {
+                description:
+                    'A seasonId with prefix and 5 digits should not accepted',
+                seasonId: 'SSN12345',
+                expectedResponse: false,
+            },
+            {
+                description: 'A seasonId that is undefined should not accepted',
+                seasonId: undefined,
+                expectedResponse: false,
+            },
+        ];
+
+        it.each(testCases)(
+            '$description - $seasonId',
+            ({ seasonId, expectedResponse }) => {
+                expect(isValidSeasonId(seasonId as string)).toBe(
+                    expectedResponse
+                );
             }
         );
     });

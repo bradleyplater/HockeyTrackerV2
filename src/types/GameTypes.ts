@@ -80,6 +80,7 @@ export interface IGamePostBody {
     team: string;
     teamRoster: string[];
     opponentName: string;
+    seasonId: string;
 }
 
 type GoalTypes = 'EVEN' | 'SH' | 'PP';
