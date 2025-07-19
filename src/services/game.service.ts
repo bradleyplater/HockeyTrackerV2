@@ -7,6 +7,7 @@ import {
     IPlayer,
 } from '../repository/player.repository';
 import { IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
+import { addGameToPlayers } from './player.service';
 
 export const CreateGame = async (postGame: IGamePostBody) => {
     // TODO: create game object
@@ -15,17 +16,7 @@ export const CreateGame = async (postGame: IGamePostBody) => {
 
     // need to update player to have correct stats for game
 
-    const playersWithoutStatsForSeason = allPlayerInDatabase.filter(
-        (player) =>
-            !player.stats.find((s) => s.seasonId === postGame.seasonId) &&
-            player.teams.find((t) => t.teamId === postGame.team)
-    );
-
-    // pass array of player ids who don't have stats for season
-    await AddStatsObjectToPlayersInDatabase(
-        playersWithoutStatsForSeason.map((p) => p._id),
-        postGame.seasonId
-    );
+    await addGameToPlayers(postGame.teamRoster, allPlayerInDatabase, postGame.seasonId);
 
     const returnedGame = await InsertGameToDatabase(hydratedGame);
 

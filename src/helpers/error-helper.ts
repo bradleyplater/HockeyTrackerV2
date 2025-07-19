@@ -77,6 +77,12 @@ export const PlayerErrors = {
         'STATS_NOT_ADDED',
         500
     ),
+
+    STATS_NOT_UPDATED: new HockeyTrackerError(
+        'One player could not have stats updated',
+        'STATS_NOT_UPDATED',
+        500
+    ),
 };
 
 export const GameErrors = {

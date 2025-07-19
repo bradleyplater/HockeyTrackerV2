@@ -1,6 +1,7 @@
 import { generateIdWithPrefix } from '../helpers/id-helper';
 import {
     AddStatsObjectToPlayersInDatabase,
+    IncrementGamesPlayedForPlayerInDatabase,
     InsertPlayerToDatabase,
     IPlayer,
 } from '../repository/player.repository';
@@ -32,8 +33,7 @@ export const addGameToPlayers = async (
     // If players do not have stat object for season this will add it for them
     await AddStatsObjectToPlayersIfNecessary(allPlayerInDatabase, roster, seasonId);
 
-
-    return true;
+    await IncrementGamesPlayedForPlayerInDatabase(roster, seasonId);
 };
 
 

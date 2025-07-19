@@ -179,3 +179,28 @@ export async function AddStatsObjectToPlayersInDatabase(
         throw PlayerErrors.STATS_NOT_ADDED;
     }
 }
+
+/**
+ * This method will increment the games played for a player in the database
+ * It assumes that the players have a stats object. If they do not this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ * 
+ * @param playerIds 
+ * @param seasonId 
+ */
+export async function IncrementGamesPlayedForPlayerInDatabase(playerIds: string[], seasonId: string ) {
+    const updateResult = await collections.player?.updateMany(
+        { _id: { $in: playerIds }, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.gamesPlayed': 1
+            }
+        }
+    );
+    
+    // Verify all players were updated
+    if (!updateResult || updateResult.modifiedCount !== playerIds.length) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}

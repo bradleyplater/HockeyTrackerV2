@@ -1,3 +1,4 @@
+import { MongoGridFSChunkError } from 'mongodb';
 import { PlayerErrors } from '../../../src/helpers/error-helper';
 import { collections } from '../../../src/repository/database';
 import {
@@ -5,6 +6,7 @@ import {
     AddTeamToPlayerByIdFromDatabase,
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
+    IncrementGamesPlayedForPlayerInDatabase,
     InsertPlayerToDatabase,
     IPlayerTeamDetails,
     RemovePlayerByIdFromDatabase,
@@ -490,5 +492,58 @@ describe('AddStatsObjectToPlayersInDatabase', () => {
             'These player IDs failed to update:',
             ['PLR123456']
         );
+    });
+});
+
+describe('IncrementGamesPlayedForPlayerInDatabase', () => {
+    it('should call out to mongodb once', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({ modifiedCount: 1});
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await IncrementGamesPlayedForPlayerInDatabase(['PLR123456'], 'SSN2324');
+
+        expect(mockUpdateMany).toHaveBeenCalledTimes(1);
+        expect(mockUpdateMany).toHaveBeenCalledWith(
+            {
+                _id: { $in: ['PLR123456'] },
+                'stats.seasonId': 'SSN2324',
+            },
+            {
+                $inc: {
+                    'stats.$.gamesPlayed': 1,
+                }, 
+            }
+        );
+    });
+
+    it('should throw error if mongo returns null', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue(null);
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            IncrementGamesPlayedForPlayerInDatabase(['PLR123456'], 'SSN2324')
+        ).rejects.toBe(PlayerErrors.STATS_NOT_UPDATED);
+
+    });
+
+    it('should throw error if mongo returns modified count as 0', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({
+            modifiedCount: 0,
+        });
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            IncrementGamesPlayedForPlayerInDatabase(['PLR123456'], 'SSN2324')
+        ).rejects.toBe(PlayerErrors.STATS_NOT_UPDATED);
+
     });
 });
