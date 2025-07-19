@@ -7,10 +7,12 @@ export const getBasicTeamMock = (): ITeam => ({
         {
             playerId: 'PL123456',
             number: 1,
+            stats: [],
         },
         {
             playerId: 'PL456123',
             number: 2,
+            stats: [],
         },
     ],
 });

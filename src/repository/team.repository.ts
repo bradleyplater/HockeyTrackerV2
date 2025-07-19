@@ -1,6 +1,7 @@
 import { InsertOneResult } from 'mongodb';
 import { collections } from './database';
 import { TeamErrors } from '../helpers/error-helper';
+import { IPlayerStats } from './player.repository';
 
 /**
  * @description This is a type that contains the details of the team.
@@ -22,6 +23,7 @@ export type ITeam = {
 export type ITeamPlayerDetails = {
     playerId: string;
     number: number;
+    stats: IPlayerStats[];
 };
 
 export async function InsertTeamToDatabase(team: ITeam) {

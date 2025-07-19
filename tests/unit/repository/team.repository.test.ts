@@ -154,6 +154,7 @@ describe('AddPlayerToTeamInDatabase', () => {
         const mockPlayer: ITeamPlayerDetails = {
             playerId: 'PL123456',
             number: 4,
+            stats: [],
         };
 
         const mockUpdateOne = jest.fn().mockReturnValue({});
@@ -173,6 +174,7 @@ describe('AddPlayerToTeamInDatabase', () => {
         const mockPlayer: ITeamPlayerDetails = {
             playerId: 'PL123456',
             number: 4,
+            stats: [],
         };
 
         const mockUpdateOne = jest.fn().mockReturnValue(null);
@@ -188,6 +190,7 @@ describe('AddPlayerToTeamInDatabase', () => {
         const mockPlayer: ITeamPlayerDetails = {
             playerId: 'PL123456',
             number: 4,
+            stats: [],
         };
 
         const mockUpdateOne = jest.fn().mockReturnValue(null);

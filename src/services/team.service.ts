@@ -58,6 +58,7 @@ export const addPlayerToTeam = async (
     const newPlayer = {
         playerId,
         number: playerNumber,
+        stats: [],
     };
 
     await AddPlayerToTeamInDatabase(newPlayer, teamId);
