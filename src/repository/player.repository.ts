@@ -15,6 +15,15 @@ export interface IPlayer {
     firstName: string;
     surname: string;
     teams: IPlayerTeamDetails[];
+    stats: IPlayerStats[];
+}
+
+export interface IPlayerStats {
+    seasonId: string;
+    gamesPlayed: number;
+    goals: number;
+    assists: number;
+    pims: number;
 }
 
 /**
@@ -125,5 +134,48 @@ export async function RemoveTeamFromPlayerInDatabase(
 
     if (!updateResult || updateResult.modifiedCount === 0) {
         throw PlayerErrors.TEAM_NOT_REMOVED;
+    }
+}
+
+/**
+ * This method will add a stats object to a player in the database
+ * It assumes that the players do NOT have a stats object. If they do this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ *
+ * @param playerIds A list of playersIds to add stats to
+ * @param seasonId  The seasonId to add stats for
+ */
+export async function AddStatsObjectToPlayersInDatabase(
+    playerIds: string[],
+    seasonId: string
+) {
+    await collections.player?.updateMany(
+        { _id: { $in: playerIds }, 'stats.seasonId': { $ne: seasonId } },
+        {
+            $push: {
+                stats: {
+                    seasonId: seasonId,
+                    gamesPlayed: 0,
+                    goals: 0,
+                    assists: 0,
+                    pims: 0,
+                },
+            },
+        }
+    );
+
+    const stillMissing =
+        (await collections.player
+            ?.find({
+                _id: { $in: playerIds },
+                'stats.seasonId': { $ne: seasonId },
+            })
+            .toArray()) ?? [];
+
+    if (stillMissing.length > 0) {
+        const failedIds = stillMissing.map((p) => p._id);
+        console.warn('These player IDs failed to update:', failedIds);
+        throw PlayerErrors.STATS_NOT_ADDED;
     }
 }

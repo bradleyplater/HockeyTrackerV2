@@ -2,6 +2,7 @@ import { generateGameMock } from '../../tests/helpers/game-mock';
 import { generateIdWithPrefix } from '../helpers/id-helper';
 import { InsertGameToDatabase } from '../repository/game.repository';
 import {
+    AddStatsObjectToPlayersInDatabase,
     GetAllPlayersFromDatabase,
     IPlayer,
 } from '../repository/player.repository';
@@ -9,8 +10,22 @@ import { IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
 
 export const CreateGame = async (postGame: IGamePostBody) => {
     // TODO: create game object
-
+    const allPlayerInDatabase = await GetAllPlayersFromDatabase();
     const hydratedGame = await createHydratedGameObject(postGame);
+
+    // need to update player to have correct stats for game
+
+    const playersWithoutStatsForSeason = allPlayerInDatabase.filter(
+        (player) =>
+            !player.stats.find((s) => s.seasonId === postGame.seasonId) &&
+            player.teams.find((t) => t.teamId === postGame.team)
+    );
+
+    // pass array of player ids who don't have stats for season
+    await AddStatsObjectToPlayersInDatabase(
+        playersWithoutStatsForSeason.map((p) => p._id),
+        postGame.seasonId
+    );
 
     const returnedGame = await InsertGameToDatabase(hydratedGame);
 
@@ -65,13 +80,6 @@ const generateGamePlayers = async (
     teamRoster: string[],
     teamId: string
 ): Promise<IGamePlayer[]> => {
-    // TODO: generate game players
-
-    // for each player in teamRoster, generate a player object
-    // player should exist within the database, and be a part of the team
-    // if player isn't in database or part of the team, just log that they don't exist and move on
-    // player stats will be defaulted to 0
-
     const allPlayerInDatabase = await GetAllPlayersFromDatabase();
 
     const gamePlayers: IGamePlayer[] = teamRoster.reduce((acc, playerId) => {

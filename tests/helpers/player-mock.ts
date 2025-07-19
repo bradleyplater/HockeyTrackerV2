@@ -5,4 +5,5 @@ export const basicPlayerMock: IPlayer = {
     firstName: 'John',
     surname: 'Doe',
     teams: [],
+    stats: [],
 };

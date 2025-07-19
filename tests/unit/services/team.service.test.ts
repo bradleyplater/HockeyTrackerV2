@@ -24,6 +24,7 @@ describe('TeamService', () => {
             firstName: 'John',
             surname: 'Doe',
             teams: teamsOverride ?? [],
+            stats: [],
         };
     };
 

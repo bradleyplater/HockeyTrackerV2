@@ -60,6 +60,7 @@ describe('GameService', () => {
                     teams: [{ teamId: 'TM654321', number: 1 }],
                     firstName: 'firstName',
                     surname: 'surname',
+                    stats: [],
                 },
             ]);
 
@@ -134,6 +135,7 @@ describe('GameService', () => {
                     teams: [{ teamId: 'team-1', number: 1 }],
                     firstName: 'firstName',
                     surname: 'surname',
+                    stats: [],
                 },
             ]);
 
