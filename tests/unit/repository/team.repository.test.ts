@@ -8,6 +8,7 @@ import {
     AddPlayerToTeamInDatabase,
     ITeamPlayerDetails,
     RemovePlayerFromTeamInDatabase,
+    AddStatsObjectToTeamPlayersInDatabase,
 } from '../../../src/repository/team.repository';
 import { getBasicTeamMock } from '../../helpers/team-mock';
 
@@ -236,5 +237,89 @@ describe('RemovePlayerFromTeamInDatabase', () => {
         await expect(
             RemovePlayerFromTeamInDatabase('PLR123456', 'TM123456')
         ).rejects.toBe(TeamErrors.PLAYER_NOT_REMOVED);
+    });
+});
+
+
+//TODO These tests need fixing
+describe('AddStatsObjectToTeamPlayersInDatabase', () => {
+    const teamId = 'TM123456';
+    const playerIds = ['PLR123456'];
+    const seasonId = 'SSN2324';
+    it('should call out to mongodb twice', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({});
+        const mockToArray = jest.fn().mockReturnValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        
+
+        collections.team = {
+            findOne: mockFind,
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await AddStatsObjectToTeamPlayersInDatabase(playerIds, teamId, seasonId);
+
+        expect(mockUpdateMany).toHaveBeenCalledTimes(1);
+        expect(mockUpdateMany).toHaveBeenCalledWith(
+            { 
+                _id: teamId,
+                'players.playerId': { $in: playerIds },
+                'players.stats.seasonId': { $ne: seasonId }
+            },
+            {
+                $push: {
+                    'players.$[player].stats': {
+                        seasonId: seasonId,
+                        gamesPlayed: 0,
+                        goals: 0,
+                        assists: 0,
+                        pims: 0
+                    }
+                }
+            },
+            {
+                arrayFilters: [{ 'player.playerId': { $in: playerIds } }]
+            }
+        );
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockFind).toHaveBeenCalledWith({
+            _id: teamId,
+            players: {
+                $elemMatch: {
+                    playerId: { $in: playerIds },
+                    'stats.seasonId': seasonId
+                }
+            }
+        });
+    });
+
+    it('Should error if team not found', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue(null);
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            AddStatsObjectToTeamPlayersInDatabase(playerIds, teamId, seasonId)
+        ).rejects.toBe(TeamErrors.TEAM_NOT_FOUND);
+
+    });
+
+    it('should error if players not updated', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({});
+        const mockFind = jest.fn().mockReturnValue(null);
+
+        collections.team = {
+            findOne: mockFind,
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            AddStatsObjectToTeamPlayersInDatabase(playerIds, teamId, seasonId)
+        ).rejects.toBe(TeamErrors.STATS_NOT_ADDED);
+
     });
 });

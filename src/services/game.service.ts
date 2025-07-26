@@ -8,6 +8,7 @@ import {
 } from '../repository/player.repository';
 import { IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
 import { addGameToPlayers } from './player.service';
+import { addGameToTeam } from './team.service';
 
 export const CreateGame = async (postGame: IGamePostBody) => {
     // TODO: create game object
@@ -17,6 +18,7 @@ export const CreateGame = async (postGame: IGamePostBody) => {
     // need to update player to have correct stats for game
 
     await addGameToPlayers(postGame.teamRoster, allPlayerInDatabase, postGame.seasonId);
+    await addGameToTeam(postGame.team, postGame.teamRoster, postGame.seasonId);
 
     const returnedGame = await InsertGameToDatabase(hydratedGame);
 

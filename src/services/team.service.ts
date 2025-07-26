@@ -7,7 +7,9 @@ import {
 } from '../repository/player.repository';
 import {
     AddPlayerToTeamInDatabase,
+    AddStatsObjectToTeamPlayersInDatabase,
     GetTeamByIdFromDatabase,
+    IncrementGamesPlayedForTeamPlayerInDatabase,
     InsertTeamToDatabase,
     ITeam,
     RemovePlayerFromTeamInDatabase,
@@ -87,6 +89,19 @@ export const removePlayerFromTeam = async (
     await RemovePlayerFromTeamInDatabase(playerId, teamId);
     await RemoveTeamFromPlayerInDatabase(teamId, playerId);
 };
+
+export const addGameToTeam = async (teamId: string, roster: string[], seasonId: string) => {
+    const team = await GetTeamByIdFromDatabase(teamId);
+
+    const playerIds = team.players
+    .filter(player => roster.includes(player.playerId)) // Only players in the roster
+    .filter(player => !player.stats.some(stat => stat.seasonId === seasonId)) // Who don't have stats for this season
+    .map(player => player.playerId);
+
+    await AddStatsObjectToTeamPlayersInDatabase(playerIds, teamId, seasonId);
+
+    await IncrementGamesPlayedForTeamPlayerInDatabase(roster, seasonId);
+}
 
 const playerExistsOnTeam = (team: ITeam, playerId: string) => {
     return team.players.some((player) => player.playerId === playerId);
