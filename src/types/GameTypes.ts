@@ -85,6 +85,15 @@ export interface IGamePostBody {
     type: GameType;
 }
 
+export interface IAddGoalBody {
+    minute: number;
+    second: number;
+    type: GoalTypes;
+    scoredBy: string; // playerId
+    assist1: string; // playerId
+    assist2: string; // playerId
+}
+
 type GoalTypes = 'EVEN' | 'SH' | 'PP';
 type GameType = 'CHALLENGE' | 'LLHIC' | 'BOTBC';
 

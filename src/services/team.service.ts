@@ -7,9 +7,11 @@ import {
 } from '../repository/player.repository';
 import {
     AddPlayerToTeamInDatabase,
+    AddStatsObjectToTeamInDatabase,
     AddStatsObjectToTeamPlayersInDatabase,
     GetTeamByIdFromDatabase,
     IncrementGamesPlayedForTeamPlayerInDatabase,
+    IncrementGoalsForTeamInDatabase,
     InsertTeamToDatabase,
     ITeam,
     RemovePlayerFromTeamInDatabase,
@@ -20,6 +22,7 @@ export const addTeamToDatabase = async (name: string) => {
         _id: generateIdWithPrefix('TM'),
         name,
         players: [],
+        stats: []
     };
 
     try {
@@ -100,7 +103,14 @@ export const addGameToTeam = async (teamId: string, roster: string[], seasonId: 
 
     await AddStatsObjectToTeamPlayersInDatabase(playerIds, teamId, seasonId);
 
+    const hasTeamStats = team.stats.some(stat => stat.seasonId === seasonId);
+
+    if (!hasTeamStats) {
+        await AddStatsObjectToTeamInDatabase(teamId, seasonId)
+    }
+
     await IncrementGamesPlayedForTeamPlayerInDatabase(roster, seasonId);
+    await IncrementGoalsForTeamInDatabase(teamId, seasonId);
 }
 
 const playerExistsOnTeam = (team: ITeam, playerId: string) => {

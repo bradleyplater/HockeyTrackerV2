@@ -3,6 +3,14 @@ import { collections } from './database';
 import { TeamErrors } from '../helpers/error-helper';
 import { IPlayerStats } from './player.repository';
 
+export interface ITeamStats {
+    seasonId: string;
+    gamesPlayed: number;
+    goals: number;
+    assists: number;
+    pims: number;
+}
+
 /**
  * @description This is a type that contains the details of the team.
  * @property _id - The id of the team.
@@ -13,6 +21,7 @@ export type ITeam = {
     _id: string;
     name: string;
     players: ITeamPlayerDetails[];
+    stats: ITeamStats[];
 };
 
 /**
@@ -170,6 +179,47 @@ export async function AddStatsObjectToTeamPlayersInDatabase(
     }
 }
 
+export async function AddStatsObjectToTeamInDatabase(
+    teamId: string,
+    seasonId: string
+) {
+    // First, get the team to work with the current data
+    const team = await collections.team?.findOne({ _id: teamId });
+    
+    if (!team) {
+        throw TeamErrors.TEAM_NOT_FOUND;
+    }
+
+    await collections.team?.updateOne(
+        { 
+            _id: teamId,
+        },
+        {
+            $push: {
+                stats: {
+                    seasonId: seasonId,
+                    gamesPlayed: 0,
+                    goals: 0,
+                    assists: 0,
+                    pims: 0
+                }
+            }
+        }
+    );
+            
+
+    // Verify the update worked
+    const updatedTeam = await collections.team?.findOne({
+        _id: teamId,
+        'stats.seasonId': seasonId
+    });
+
+    if (!updatedTeam) {
+        console.warn('Failed to add stats to team');
+        throw TeamErrors.STATS_NOT_ADDED;
+    }
+}
+
 export async function IncrementGamesPlayedForTeamPlayerInDatabase(playerIds: string[], seasonId: string ) {
     const updateResult = await collections.team?.updateMany(
         { 
@@ -213,6 +263,22 @@ export async function IncrementGamesPlayedForTeamPlayerInDatabase(playerIds: str
     
     const actualCount = verificationResult?.[0]?.count || 0;
     if (actualCount !== playerIds.length) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function IncrementGoalsForTeamInDatabase(teamId: string, seasonId: string ) {
+    const updateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.gamesPlayed': 1
+            }
+        }
+    );
+    
+    // Verify all players were updated
+    if (!updateResult || updateResult.modifiedCount !== 1) {
         throw TeamErrors.STATS_NOT_UPDATED;
     }
 }
