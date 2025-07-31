@@ -31,6 +31,7 @@ const createHydratedGameObject = async (
     return {
         _id: generateIdWithPrefix('GME'),
         date: new Date(postGame.date),
+        type: postGame.type,
         opponentTeam: {
             name: postGame.opponentName,
             goals: [],

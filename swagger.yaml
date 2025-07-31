@@ -26,6 +26,19 @@ paths:
         get:
             summary: Hockey Seasons
             description: Gets a list of all Seasons
+            responses:
+                '200':
+                    description: A list of seasons
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Season'
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
 
     /player:
         post:
@@ -48,6 +61,12 @@ paths:
                                     type: string
                                     example: Doe
             responses:
+                '201':
+                    description: Player created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Player'
                 '403':
                     description: Unauthorised
                 '500':
@@ -154,17 +173,17 @@ paths:
                                 surname:
                                     type: string
                                     example: Doe
-                        responses:
-                            '204':
-                                description: Player updated successfully (no content)
-                            '304':
-                                description: Player not modified
-                            '400':
-                                description: Invalid playerId format or request body
-                            '403':
-                                description: Unauthorised
-                            '500':
-                                description: Server error
+            responses:
+                '204':
+                    description: Player updated successfully (no content)
+                '304':
+                    description: Player not modified
+                '400':
+                    description: Invalid playerId format or request body
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
 
     /team:
         post:
@@ -216,6 +235,112 @@ paths:
                 '500':
                     description: Internal server error
 
+    /team/addplayer/{teamId}:
+        patch:
+            summary: Add player to team
+            description: Adds a player to a team with the specified player number
+            parameters:
+                - name: teamId
+                  in: path
+                  required: true
+                  description: Unique Team ID
+                  schema:
+                      type: string
+                      example: TM123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - playerId
+                                - number
+                            properties:
+                                playerId:
+                                    type: string
+                                    pattern: '^PLR\d{6}$'
+                                    example: PLR123456
+                                number:
+                                    type: number
+                                    example: 99
+            responses:
+                '200':
+                    description: Player added to team successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Team'
+                '400':
+                    description: Invalid request body or team/player ID format
+                '403':
+                    description: Unauthorised
+                '404':
+                    description: Team or player not found
+                '500':
+                    description: Server error
+
+    /team/removeplayer/{teamId}:
+        patch:
+            summary: Remove player from team
+            description: Removes a player from a team
+            parameters:
+                - name: teamId
+                  in: path
+                  required: true
+                  description: Unique Team ID
+                  schema:
+                      type: string
+                      example: TM123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - playerId
+                            properties:
+                                playerId:
+                                    type: string
+                                    pattern: '^PLR\d{6}$'
+                                    example: PLR123456
+            responses:
+                '204':
+                    description: Player removed from team successfully (no content)
+                '400':
+                    description: Invalid request body or player ID format
+                '403':
+                    description: Unauthorised
+                '404':
+                    description: Team or player not found
+                '500':
+                    description: Server error
+
+    /game:
+        post:
+            summary: Create a new game
+            description: Creates a new game with the provided details
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GamePostBody'
+            responses:
+                '201':
+                    description: Game created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Game'
+                '400':
+                    description: Invalid request body
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
 components:
     schemas:
         Season:
@@ -227,6 +352,9 @@ components:
                 name:
                     type: string
                     example: '23/24'
+            required:
+                - id
+                - name
 
         Player:
             type: object
@@ -240,10 +368,58 @@ components:
                 surname:
                     type: string
                     example: 'Doe'
+                teams:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PlayerTeamDetails'
+                stats:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PlayerStats'
             required:
                 - _id
                 - firstName
                 - surname
+                - teams
+                - stats
+
+        PlayerTeamDetails:
+            type: object
+            properties:
+                teamId:
+                    type: string
+                    example: 'TM123456'
+                number:
+                    type: number
+                    example: 99
+            required:
+                - teamId
+                - number
+
+        PlayerStats:
+            type: object
+            properties:
+                seasonId:
+                    type: string
+                    example: 'SSN100'
+                gamesPlayed:
+                    type: number
+                    example: 10
+                goals:
+                    type: number
+                    example: 5
+                assists:
+                    type: number
+                    example: 8
+                pims:
+                    type: number
+                    example: 2
+            required:
+                - seasonId
+                - gamesPlayed
+                - goals
+                - assists
+                - pims
 
         Team:
             type: object
@@ -257,8 +433,365 @@ components:
                 players:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Player'
-                    example: []
+                        $ref: '#/components/schemas/TeamPlayerDetails'
             required:
                 - _id
                 - name
+                - players
+
+        TeamPlayerDetails:
+            type: object
+            properties:
+                playerId:
+                    type: string
+                    example: 'PLR123456'
+                number:
+                    type: number
+                    example: 99
+                stats:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PlayerStats'
+            required:
+                - playerId
+                - number
+                - stats
+
+        GamePostBody:
+            type: object
+            properties:
+                date:
+                    type: string
+                    format: date-time
+                    description: Date in ISO format
+                    example: '2024-01-15T19:00:00.000Z'
+                team:
+                    type: string
+                    description: Team ID
+                    example: 'TM123456'
+                teamRoster:
+                    type: array
+                    items:
+                        type: string
+                        pattern: '^PLR\d{6}$'
+                    description: Array of player IDs on the roster
+                    example: ['PLR123456', 'PLR789012']
+                opponentName:
+                    type: string
+                    description: Name of the opponent team
+                    example: 'Toronto Maple Leafs'
+                seasonId:
+                    type: string
+                    description: Season ID
+                    example: 'SSN100'
+            required:
+                - date
+                - team
+                - teamRoster
+                - opponentName
+                - seasonId
+
+        Game:
+            type: object
+            properties:
+                _id:
+                    type: string
+                    example: 'GM123456'
+                date:
+                    type: string
+                    format: date-time
+                    example: '2024-01-15T19:00:00.000Z'
+                team:
+                    $ref: '#/components/schemas/TeamGameTeam'
+                opponentTeam:
+                    $ref: '#/components/schemas/OpponentGameTeam'
+                score:
+                    $ref: '#/components/schemas/GameScore'
+            required:
+                - _id
+                - date
+                - team
+                - opponentTeam
+                - score
+
+        TeamGameTeam:
+            type: object
+            properties:
+                id:
+                    type: string
+                    example: 'TM123456'
+                roster:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GamePlayer'
+                goals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GameTeamGoals'
+                penalties:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GameTeamPenalty'
+            required:
+                - id
+                - roster
+                - goals
+                - penalties
+
+        OpponentGameTeam:
+            type: object
+            properties:
+                name:
+                    type: string
+                    example: 'Toronto Maple Leafs'
+                goals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GameOpponentGoals'
+                penalties:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GameOpponentPenalty'
+            required:
+                - name
+                - goals
+                - penalties
+
+        GamePlayer:
+            type: object
+            properties:
+                playerId:
+                    type: string
+                    example: 'PLR123456'
+                teamId:
+                    type: string
+                    example: 'TM123456'
+                stats:
+                    $ref: '#/components/schemas/GamePlayerStats'
+            required:
+                - playerId
+                - teamId
+                - stats
+
+        GamePlayerStats:
+            type: object
+            properties:
+                goals:
+                    type: number
+                    example: 1
+                assists:
+                    type: number
+                    example: 2
+                pims:
+                    type: number
+                    example: 0
+            required:
+                - goals
+                - assists
+                - pims
+
+        GameTeamGoals:
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseGameStat'
+                - type: object
+                  properties:
+                      scoredBy:
+                          type: string
+                          description: Player ID who scored
+                          example: 'PLR123456'
+                      assist1:
+                          type: string
+                          description: Player ID of first assist
+                          example: 'PLR789012'
+                      assist2:
+                          type: string
+                          description: Player ID of second assist
+                          example: 'PLR345678'
+                      type:
+                          $ref: '#/components/schemas/GoalType'
+                  required:
+                      - scoredBy
+                      - assist1
+                      - assist2
+                      - type
+
+        GameOpponentGoals:
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseGameStat'
+                - type: object
+                  properties:
+                      name:
+                          type: string
+                          description: Name of player who scored
+                          example: 'John Doe'
+                      type:
+                          $ref: '#/components/schemas/GoalType'
+                  required:
+                      - name
+                      - type
+
+        GameTeamPenalty:
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseGameStat'
+                - type: object
+                  properties:
+                      playerId:
+                          type: string
+                          example: 'PLR123456'
+                      type:
+                          $ref: '#/components/schemas/PenaltyType'
+                      duration:
+                          type: number
+                          description: Duration in minutes
+                          example: 2
+                  required:
+                      - playerId
+                      - type
+                      - duration
+
+        GameOpponentPenalty:
+            type: object
+            allOf:
+                - $ref: '#/components/schemas/BaseGameStat'
+                - type: object
+                  properties:
+                      name:
+                          type: string
+                          description: Name of player
+                          example: 'John Doe'
+                      type:
+                          $ref: '#/components/schemas/PenaltyType'
+                      duration:
+                          type: number
+                          description: Duration in minutes
+                          example: 2
+                  required:
+                      - name
+                      - type
+                      - duration
+
+        BaseGameStat:
+            type: object
+            properties:
+                minute:
+                    type: number
+                    example: 15
+                second:
+                    type: number
+                    example: 30
+            required:
+                - minute
+                - second
+
+        GameScore:
+            type: object
+            properties:
+                team:
+                    type: number
+                    example: 3
+                opponent:
+                    type: number
+                    example: 2
+                periods:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GamePeriodScore'
+            required:
+                - team
+                - opponent
+                - periods
+
+        GamePeriodScore:
+            type: object
+            properties:
+                number:
+                    type: number
+                    example: 1
+                team:
+                    type: number
+                    example: 1
+                opponent:
+                    type: number
+                    example: 0
+            required:
+                - number
+                - team
+                - opponent
+
+        GoalType:
+            type: string
+            enum: [EVEN, SH, PP]
+            description: |
+                Goal types:
+                - EVEN: Even strength
+                - SH: Short handed
+                - PP: Power play
+
+        PenaltyType:
+            type: string
+            enum: 
+                - ABUSE
+                - AGGR
+                - BDYCH
+                - BOARD
+                - CHARG
+                - CHECK
+                - CHEB
+                - DELAY
+                - ELBOW
+                - EMBEL
+                - FIGHT
+                - GOALINTRF
+                - HIST
+                - HOLD
+                - HOST
+                - HOOK
+                - ILLEQUIP
+                - INTRF
+                - KICK
+                - KNEE
+                - MATCH
+                - MISC
+                - RETAL
+                - ROUGH
+                - SLASH
+                - SPEAR
+                - THROWSTICK
+                - TOOM
+                - TRIP
+                - UNSP
+            description: |
+                Penalty types:
+                - ABUSE: Abuse of officials
+                - AGGR: Aggressor penalty
+                - BDYCH: Body checking
+                - BOARD: Boarding
+                - CHARG: Charging
+                - CHECK: Checking
+                - CHEB: Checking from behind
+                - DELAY: Delay of game
+                - ELBOW: Elbowing
+                - EMBEL: Embellishment
+                - FIGHT: Fighting
+                - GOALINTRF: Goaltender interference
+                - HIST: High sticking
+                - HOLD: Holding
+                - HOST: Holding the stick
+                - HOOK: Hooking
+                - ILLEQUIP: Illegal equipment
+                - INTRF: Interference
+                - KICK: Kicking
+                - KNEE: Kneeing
+                - MATCH: Match penalty (e.g. intent to injure)
+                - MISC: Misconduct
+                - RETAL: Retaliation
+                - ROUGH: Roughing
+                - SLASH: Slashing
+                - SPEAR: Spearing
+                - THROWSTICK: Throwing the stick
+                - TOOM: Too many men on the ice
+                - TRIP: Tripping
+                - UNSP: Unsportsmanlike conduct

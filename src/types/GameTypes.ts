@@ -4,6 +4,7 @@ export interface IGame {
     team: ITeamGameTeam; // create type
     opponentTeam: IOpponentGameTeam; // create type
     score: IGameScore; // create type
+    type: GameType;
 }
 
 /**
@@ -81,9 +82,11 @@ export interface IGamePostBody {
     teamRoster: string[];
     opponentName: string;
     seasonId: string;
+    type: GameType;
 }
 
 type GoalTypes = 'EVEN' | 'SH' | 'PP';
+type GameType = 'CHALLENGE' | 'LLHIC' | 'BOTBC';
 
 export type PenaltyType =
     | 'ABUSE' // Abuse of officials

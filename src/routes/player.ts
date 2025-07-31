@@ -46,11 +46,13 @@ router.get('/', async (req, res) => {
 
         logger.LogRouteFinished('Get All Players');
         res.status(StatusCodes.OK).json(players).send();
+        return;
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Get All Players');
 
         commonErrorHandler(error, res);
+        return;
     }
 });
 

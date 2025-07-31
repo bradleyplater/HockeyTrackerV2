@@ -189,8 +189,30 @@ export async function IncrementGamesPlayedForTeamPlayerInDatabase(playerIds: str
         }
     );
     
-    // Verify all players were updated
-    if (!updateResult || updateResult.modifiedCount !== playerIds.length) {
+    if (!updateResult || updateResult.acknowledged === false) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+    
+    // Verify all players exist with the given season stats
+    const verificationResult = await collections.team?.aggregate([
+        { $unwind: '$players' },
+        { $unwind: '$players.stats' },
+        {
+            $match: {
+                'players.playerId': { $in: playerIds },
+                'players.stats.seasonId': seasonId
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                count: { $sum: 1 }
+            }
+        }
+    ]).toArray();
+    
+    const actualCount = verificationResult?.[0]?.count || 0;
+    if (actualCount !== playerIds.length) {
         throw TeamErrors.STATS_NOT_UPDATED;
     }
 }
