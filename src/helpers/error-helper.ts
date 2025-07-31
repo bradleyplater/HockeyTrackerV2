@@ -44,6 +44,16 @@ export const TeamErrors = {
         'PLAYER_NOT_REMOVED',
         500
     ),
+    STATS_NOT_ADDED: new HockeyTrackerError(
+        'One player could not have stats added to them',
+        'STATS_NOT_ADDED',
+        500
+    ),
+    STATS_NOT_UPDATED: new HockeyTrackerError(
+        'One player could not have stats updated',
+        'STATS_NOT_UPDATED',
+        500
+    ),
 };
 
 export const PlayerErrors = {
@@ -70,6 +80,25 @@ export const PlayerErrors = {
     TEAM_NOT_REMOVED: new HockeyTrackerError(
         'Team could not be removed from player',
         'TEAM_NOT_REMOVED',
+        500
+    ),
+    STATS_NOT_ADDED: new HockeyTrackerError(
+        'One player could not have stats added to them',
+        'STATS_NOT_ADDED',
+        500
+    ),
+
+    STATS_NOT_UPDATED: new HockeyTrackerError(
+        'One player could not have stats updated',
+        'STATS_NOT_UPDATED',
+        500
+    ),
+};
+
+export const GameErrors = {
+    GAME_NOT_CREATED: new HockeyTrackerError(
+        'Game was not created',
+        'GAME_NOT_CREATED',
         500
     ),
 };

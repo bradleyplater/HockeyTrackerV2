@@ -1,6 +1,7 @@
 import { InsertOneResult } from 'mongodb';
 import { collections } from './database';
 import { TeamErrors } from '../helpers/error-helper';
+import { IPlayerStats } from './player.repository';
 
 /**
  * @description This is a type that contains the details of the team.
@@ -22,6 +23,7 @@ export type ITeam = {
 export type ITeamPlayerDetails = {
     playerId: string;
     number: number;
+    stats: IPlayerStats[];
 };
 
 export async function InsertTeamToDatabase(team: ITeam) {
@@ -101,3 +103,117 @@ export async function RemovePlayerFromTeamInDatabase(
         throw TeamErrors.PLAYER_NOT_REMOVED;
     }
 }
+
+/**
+ * This method will add a stats object to a player in the database
+ * It assumes that the players do NOT have a stats object. If they do this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ *
+ * @param playerIds A list of playersIds to add stats to
+ * @param seasonId  The seasonId to add stats for
+ */
+export async function AddStatsObjectToTeamPlayersInDatabase(
+    playerIds: string[],
+    teamId: string,
+    seasonId: string
+) {
+    // First, get the team to work with the current data
+    const team = await collections.team?.findOne({ _id: teamId });
+    
+    if (!team) {
+        throw TeamErrors.TEAM_NOT_FOUND;
+    }
+
+    // Update each player individually
+    for (const playerId of playerIds) {
+        const playerIndex = team.players.findIndex(p => p.playerId === playerId);
+        
+        if (playerIndex !== -1) {
+            // Check if player already has stats for this season
+            const hasSeasonStats = team.players[playerIndex].stats.some(
+                stat => stat.seasonId === seasonId
+            );
+            
+            if (!hasSeasonStats) {
+                // Add stats object to this specific player
+                await collections.team?.updateOne(
+                    { 
+                        _id: teamId,
+                        'players.playerId': playerId
+                    },
+                    {
+                        $push: {
+                            'players.$.stats': {
+                                seasonId: seasonId,
+                                gamesPlayed: 0,
+                                goals: 0,
+                                assists: 0,
+                                pims: 0
+                            }
+                        }
+                    }
+                );
+            }
+        }
+    }
+
+    // Verify the update worked
+    const updatedTeam = await collections.team?.findOne({
+        _id: teamId,
+        'players.stats.seasonId': seasonId
+    });
+
+    if (!updatedTeam) {
+        console.warn('Failed to add stats to team players');
+        throw TeamErrors.STATS_NOT_ADDED;
+    }
+}
+
+export async function IncrementGamesPlayedForTeamPlayerInDatabase(playerIds: string[], seasonId: string ) {
+    const updateResult = await collections.team?.updateMany(
+        { 
+            'players.playerId': { $in: playerIds }, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].gamesPlayed': 1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': { $in: playerIds } },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!updateResult || updateResult.acknowledged === false) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+    
+    // Verify all players exist with the given season stats
+    const verificationResult = await collections.team?.aggregate([
+        { $unwind: '$players' },
+        { $unwind: '$players.stats' },
+        {
+            $match: {
+                'players.playerId': { $in: playerIds },
+                'players.stats.seasonId': seasonId
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                count: { $sum: 1 }
+            }
+        }
+    ]).toArray();
+    
+    const actualCount = verificationResult?.[0]?.count || 0;
+    if (actualCount !== playerIds.length) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+

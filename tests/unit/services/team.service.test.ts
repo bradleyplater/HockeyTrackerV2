@@ -9,6 +9,7 @@ import {
 } from '../../../src/services/team.service';
 import { PlayerErrors, TeamErrors } from '../../../src/helpers/error-helper';
 import { getBasicTeamMock } from '../../helpers/team-mock';
+import { Stats } from 'fs';
 
 describe('TeamService', () => {
     afterEach(() => {
@@ -24,6 +25,7 @@ describe('TeamService', () => {
             firstName: 'John',
             surname: 'Doe',
             teams: teamsOverride ?? [],
+            stats: [],
         };
     };
 
@@ -120,6 +122,7 @@ describe('TeamService', () => {
             team.players.push({
                 playerId: 'PLR123456',
                 number: 14,
+                stats: [],
             });
 
             const player = generatePlayerMock('PLR123456');
@@ -144,6 +147,7 @@ describe('TeamService', () => {
             team.players.push({
                 playerId: 'PLR456789',
                 number: 1,
+                stats: [],
             });
 
             const player = generatePlayerMock('PLR123456');
@@ -174,6 +178,7 @@ describe('TeamService', () => {
                     {
                         playerId: 'PLR654321',
                         number: 4,
+                        stats: [],
                     },
                 ],
             });
@@ -200,10 +205,12 @@ describe('TeamService', () => {
                     {
                         playerId: 'PLR654321',
                         number: 4,
+                        stats: []
                     },
                     {
                         playerId: 'PLR123456',
                         number: 13,
+                        stats: []
                     },
                 ],
             };
@@ -273,6 +280,7 @@ describe('TeamService', () => {
                     {
                         playerId: 'PLR123456',
                         number: 4,
+                        stats: [],
                     },
                 ],
             });

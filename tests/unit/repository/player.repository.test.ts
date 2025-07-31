@@ -1,9 +1,12 @@
+import { MongoGridFSChunkError } from 'mongodb';
 import { PlayerErrors } from '../../../src/helpers/error-helper';
 import { collections } from '../../../src/repository/database';
 import {
+    AddStatsObjectToPlayersInDatabase,
     AddTeamToPlayerByIdFromDatabase,
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
+    IncrementGamesPlayedForPlayerInDatabase,
     InsertPlayerToDatabase,
     IPlayerTeamDetails,
     RemovePlayerByIdFromDatabase,
@@ -31,6 +34,7 @@ describe('InsertPlayerToDatabase', () => {
             firstName: 'John',
             surname: 'Doe',
             teams: [],
+            stats: [],
         });
 
         expect(mockFind).toHaveBeenCalledTimes(1);
@@ -52,6 +56,7 @@ describe('InsertPlayerToDatabase', () => {
                 firstName: 'John',
                 surname: 'Doe',
                 teams: [],
+                stats: [],
             })
         ).rejects.toThrow(PlayerErrors.PLAYER_NOT_CREATED);
     });
@@ -74,6 +79,7 @@ describe('InsertPlayerToDatabase', () => {
                 firstName: 'John',
                 surname: 'Doe',
                 teams: [],
+                stats: [],
             })
         ).rejects.toThrow(PlayerErrors.PLAYER_NOT_CREATED);
     });
@@ -223,6 +229,7 @@ describe('UpdatePlayerById Details', () => {
             firstName: 'John',
             surname: 'Doe',
             teams: [],
+            stats: [],
         });
 
         expect(mockUpdateOne).toHaveBeenCalledTimes(1);
@@ -248,6 +255,7 @@ describe('UpdatePlayerById Details', () => {
                 firstName: 'John',
                 surname: 'Doe',
                 teams: [],
+                stats: [],
             })
         ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
     });
@@ -263,6 +271,7 @@ describe('UpdatePlayerById Details', () => {
                 firstName: 'John',
                 surname: 'Doe',
                 teams: [],
+                stats: [],
             })
         ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
     });
@@ -278,6 +287,7 @@ describe('UpdatePlayerById Details', () => {
                 firstName: 'John',
                 surname: 'Doe',
                 teams: [],
+                stats: [],
             })
         ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
     });
@@ -293,6 +303,7 @@ describe('UpdatePlayerById Details', () => {
                 firstName: 'John',
                 surname: 'Doe',
                 teams: [],
+                stats: [],
             })
         ).rejects.toBe(PlayerErrors.PLAYER_NOT_FOUND);
     });
@@ -420,5 +431,119 @@ describe('RemoveTeamFromPlayerByIdFromDatabase', () => {
         await expect(
             RemoveTeamFromPlayerInDatabase('TM123456', 'PLR123456')
         ).rejects.toBe(PlayerErrors.TEAM_NOT_REMOVED);
+    });
+});
+
+describe('AddStatsObjectToPlayersInDatabase', () => {
+    it('should call out to mongodb twice', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({});
+        const mockToArray = jest.fn().mockReturnValue([]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+
+        collections.player = {
+            find: mockFind,
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await AddStatsObjectToPlayersInDatabase(['PLR123456'], 'SSN2324');
+
+        expect(mockUpdateMany).toHaveBeenCalledTimes(1);
+        expect(mockUpdateMany).toHaveBeenCalledWith(
+            {
+                _id: { $in: ['PLR123456'] },
+                'stats.seasonId': { $ne: 'SSN2324' },
+            },
+            {
+                $push: {
+                    stats: {
+                        seasonId: 'SSN2324',
+                        gamesPlayed: 0,
+                        goals: 0,
+                        assists: 0,
+                        pims: 0,
+                    },
+                },
+            }
+        );
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockFind).toHaveBeenCalledWith({
+            _id: { $in: ['PLR123456'] },
+            'stats.seasonId': { $ne: 'SSN2324' },
+        });
+    });
+
+    it('should log ids of players it failed to uipdate', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({});
+        const mockToArray = jest.fn().mockReturnValue([basicPlayerMock]);
+        const mockFind = jest.fn().mockReturnValue({ toArray: mockToArray });
+        const consoleSpy = jest.spyOn(console, 'warn');
+
+        collections.player = {
+            find: mockFind,
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            AddStatsObjectToPlayersInDatabase(['PLR123456'], 'SSN2324')
+        ).rejects.toBe(PlayerErrors.STATS_NOT_ADDED);
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+            'These player IDs failed to update:',
+            ['PLR123456']
+        );
+    });
+});
+
+describe('IncrementGamesPlayedForPlayerInDatabase', () => {
+    it('should call out to mongodb once', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({ modifiedCount: 1});
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await IncrementGamesPlayedForPlayerInDatabase(['PLR123456'], 'SSN2324');
+
+        expect(mockUpdateMany).toHaveBeenCalledTimes(1);
+        expect(mockUpdateMany).toHaveBeenCalledWith(
+            {
+                _id: { $in: ['PLR123456'] },
+                'stats.seasonId': 'SSN2324',
+            },
+            {
+                $inc: {
+                    'stats.$.gamesPlayed': 1,
+                }, 
+            }
+        );
+    });
+
+    it('should throw error if mongo returns null', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue(null);
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            IncrementGamesPlayedForPlayerInDatabase(['PLR123456'], 'SSN2324')
+        ).rejects.toBe(PlayerErrors.STATS_NOT_UPDATED);
+
+    });
+
+    it('should throw error if mongo returns modified count as 0', async () => {
+        const mockUpdateMany = jest.fn().mockReturnValue({
+            modifiedCount: 0,
+        });
+
+        collections.player = {
+            updateMany: mockUpdateMany,
+        } as any;
+
+        await expect(
+            IncrementGamesPlayedForPlayerInDatabase(['PLR123456'], 'SSN2324')
+        ).rejects.toBe(PlayerErrors.STATS_NOT_UPDATED);
+
     });
 });

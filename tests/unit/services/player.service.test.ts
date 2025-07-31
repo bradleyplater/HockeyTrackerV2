@@ -1,6 +1,9 @@
 import * as PlayerRepository from '../../../src/repository/player.repository';
 import * as IdHelper from '../../../src/helpers/id-helper';
-import { addPlayerToDatabase } from '../../../src/services/player.service';
+import {
+    addGameToPlayers,
+    addPlayerToDatabase,
+} from '../../../src/services/player.service';
 
 describe('PlayerService', () => {
     const testCases = [
@@ -28,6 +31,7 @@ describe('PlayerService', () => {
                     firstName,
                     surname,
                     teams: [],
+                    stats: [],
                 });
 
             jest.spyOn(IdHelper, 'generateIdWithPrefix').mockReturnValue(
@@ -39,6 +43,7 @@ describe('PlayerService', () => {
                 firstName,
                 surname,
                 teams: [],
+                stats: [],
             };
 
             await addPlayerToDatabase(firstName, surname);
@@ -64,5 +69,26 @@ describe('PlayerService', () => {
         await expect(addPlayerToDatabase('John', 'Doe')).rejects.toThrow(
             testError
         );
+    });
+
+    describe('addGameToPlayers', () => {
+        // Finish writing tests for this function
+        it("should call mongo with correct list when player doesn't have stat object", async () => {
+            const roster = ['PLR123456'];
+            const player: PlayerRepository.IPlayer = {
+                _id: 'PLR123456',
+                firstName: 'John',
+                surname: 'Doe',
+                teams: [],
+                stats: [],
+            };
+            const seasonId = 'SSN123456';
+
+            const AddStatsObjectToPlayersInDatabaseSpy = jest.spyOn(PlayerRepository, 'AddStatsObjectToPlayersInDatabase')
+
+            addGameToPlayers(roster, [player], seasonId);
+
+            expect(AddStatsObjectToPlayersInDatabaseSpy).toHaveBeenCalledWith(['PLR123456'], seasonId);
+        });
     });
 });

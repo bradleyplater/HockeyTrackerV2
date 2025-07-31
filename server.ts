@@ -4,12 +4,22 @@ import LivenessRouter from './src/routes/liveness';
 import SeasonsRouter from './src/routes/seasons';
 import PlayerRouter from './src/routes/player';
 import TeamRouter from './src/routes/team';
+import GameRouter from './src/routes/game';
+import cors from 'cors';
 
 import YAML from 'yamljs';
 const swaggerDocument = YAML.load('./swagger.yaml');
 
 // Create a new Express.js app
 const app = express();
+
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+
+// Or allow all origins (development only)
+app.use(cors());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -18,5 +28,6 @@ app.use('/api/v2/liveness', LivenessRouter);
 app.use('/api/v2/seasons', SeasonsRouter);
 app.use('/api/v2/player', PlayerRouter);
 app.use('/api/v2/team', TeamRouter);
+app.use('/api/v2/game', GameRouter);
 
 export default app;

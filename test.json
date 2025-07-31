@@ -83,3 +83,10 @@
         ]
     }
 }
+
+{
+    "date": "2024-01-20T19:00:00.000Z",
+    "teamId": "TM123456",
+    "teamRoster": [ "PL123456", "PL789012"],
+    "opponentName": "Chargers",
+}
