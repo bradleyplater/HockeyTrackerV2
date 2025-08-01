@@ -101,6 +101,11 @@ export const GameErrors = {
         'GAME_NOT_CREATED',
         500
     ),
+    GAME_NOT_FOUND: new HockeyTrackerError(
+        'Game not found',
+        'GAME_NOT_FOUND',
+        404
+    ),
 };
 
 export const commonErrorHandler = (error: any, res: express.Response) => {

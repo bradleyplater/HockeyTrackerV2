@@ -10,6 +10,7 @@ import {
     AddStatsObjectToTeamInDatabase,
     AddStatsObjectToTeamPlayersInDatabase,
     GetTeamByIdFromDatabase,
+    IncrementGamesPlayedForTeamInDatabase,
     IncrementGamesPlayedForTeamPlayerInDatabase,
     IncrementGoalsForTeamInDatabase,
     InsertTeamToDatabase,
@@ -110,7 +111,7 @@ export const addGameToTeam = async (teamId: string, roster: string[], seasonId: 
     }
 
     await IncrementGamesPlayedForTeamPlayerInDatabase(roster, seasonId);
-    await IncrementGoalsForTeamInDatabase(teamId, seasonId);
+    await IncrementGamesPlayedForTeamInDatabase(teamId, seasonId);
 }
 
 const playerExistsOnTeam = (team: ITeam, playerId: string) => {

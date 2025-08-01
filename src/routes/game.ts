@@ -1,7 +1,7 @@
 import express from 'express';
 import { ApiKeyValidation } from '../middleware/authentication';
 import * as logger from '../helpers/logger';
-import { CreateGame } from '../services/game.service';
+import { AddGoalToGame, CreateGame } from '../services/game.service';
 import { StatusCodes } from 'http-status-codes';
 import { commonErrorHandler } from '../helpers/error-helper';
 import { IAddGoalBody, IGamePostBody } from '../types/GameTypes';
@@ -53,9 +53,10 @@ router.patch('/addgoal/:gameid', async (req, res) => {
         // Add service to update player stats based on goal
         // Update create-game to add team stats the same way it does player stats.
         // Update Team Stats
-        // const result = await AddGoalToGame(req.body);
+        const result = await AddGoalToGame(req.params.gameid, req.body);
         
-        res.status(StatusCodes.OK).json({something: "here"}).send();
+        logger.LogRouteFinished('Add Goal to Game');
+        res.status(StatusCodes.CREATED).send();
         return;
     } catch (error) {
         console.log(error);

@@ -267,7 +267,7 @@ export async function IncrementGamesPlayedForTeamPlayerInDatabase(playerIds: str
     }
 }
 
-export async function IncrementGoalsForTeamInDatabase(teamId: string, seasonId: string ) {
+export async function IncrementGamesPlayedForTeamInDatabase(teamId: string, seasonId: string ) {
     const updateResult = await collections.team?.updateOne(
         { _id: teamId, 'stats.seasonId': seasonId },
         {
@@ -283,3 +283,100 @@ export async function IncrementGoalsForTeamInDatabase(teamId: string, seasonId: 
     }
 }
 
+/**
+ * This method will increment the goals for a team and a specific player in the database
+ * It updates both the team's overall goal stats and the individual player's goal stats
+ * It assumes that both the team and player have stats objects for the given season.
+ * 
+ * @param teamId - The ID of the team to increment goals for
+ * @param playerId - The ID of the player who scored the goal
+ * @param seasonId - The season ID to increment goals for
+ */
+export async function IncrementGoalsForTeamInDatabase(teamId: string, playerId: string, seasonId: string) {
+    // Update team's overall goal stats
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.goals': 1
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    // Update individual player's goal stats within the team
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].goals': 1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+/**
+ * This method will increment the assists for a team and a specific player in the database
+ * It updates both the team's overall assist stats and the individual player's assist stats
+ * It assumes that both the team and player have stats objects for the given season.
+ * 
+ * @param teamId - The ID of the team to increment assists for
+ * @param playerId - The ID of the player who got the assist
+ * @param seasonId - The season ID to increment assists for
+ */
+export async function IncrementAssistsForTeamInDatabase(teamId: string, playerId: string, seasonId: string) {
+    // Update team's overall assist stats
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.assists': 1
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    // Update individual player's assist stats within the team
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].assists': 1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}

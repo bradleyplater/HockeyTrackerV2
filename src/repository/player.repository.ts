@@ -204,3 +204,53 @@ export async function IncrementGamesPlayedForPlayerInDatabase(playerIds: string[
         throw PlayerErrors.STATS_NOT_UPDATED;
     }
 }
+
+/**
+ * This method will increment the goals for a player in the database
+ * It assumes that the player has a stats object for the given season. If they do not this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ * 
+ * @param playerId - The ID of the player to increment goals for
+ * @param seasonId - The season ID to increment goals for
+ */
+export async function IncrementGoalsForPlayerInDatabase(playerId: string, seasonId: string) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.goals': 1
+            }
+        }
+    );
+    
+    // Verify the player was updated
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
+
+/**
+ * This method will increment the assists for a player in the database
+ * It assumes that the player has a stats object for the given season. If they do not this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ * 
+ * @param playerId - The ID of the player to increment assists for
+ * @param seasonId - The season ID to increment assists for
+ */
+export async function IncrementAssistsForPlayerInDatabase(playerId: string, seasonId: string) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.assists': 1
+            }
+        }
+    );
+    
+    // Verify the player was updated
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}

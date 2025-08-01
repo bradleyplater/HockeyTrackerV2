@@ -1,6 +1,7 @@
 export interface IGame {
     _id: string;
     date: Date;
+    seasonId: string;
     team: ITeamGameTeam; // create type
     opponentTeam: IOpponentGameTeam; // create type
     score: IGameScore; // create type

@@ -1,12 +1,16 @@
 import { generateGameMock } from '../../tests/helpers/game-mock';
 import { generateIdWithPrefix } from '../helpers/id-helper';
-import { InsertGameToDatabase } from '../repository/game.repository';
+import { AddGoalToGameInDatabase, GetGameById, InsertGameToDatabase } from '../repository/game.repository';
 import {
     AddStatsObjectToPlayersInDatabase,
     GetAllPlayersFromDatabase,
+    GetPlayerByIdFromDatabase,
+    IncrementAssistsForPlayerInDatabase,
+    IncrementGoalsForPlayerInDatabase,
     IPlayer,
 } from '../repository/player.repository';
-import { IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
+import { IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase } from '../repository/team.repository';
+import { IAddGoalBody, IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
 import { addGameToPlayers } from './player.service';
 import { addGameToTeam } from './team.service';
 
@@ -25,12 +29,42 @@ export const CreateGame = async (postGame: IGamePostBody) => {
     return returnedGame;
 };
 
+export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody) => {
+    //check game exists
+
+    const game = await GetGameById(gameId);
+    await GetPlayerByIdFromDatabase(addGoal.scoredBy);
+    if(addGoal.assist1) {
+        await GetPlayerByIdFromDatabase(addGoal.assist1)
+    }
+    if (addGoal.assist2) {
+        await GetPlayerByIdFromDatabase(addGoal.assist2)
+    }
+
+    // add new goal object to game
+    await AddGoalToGameInDatabase(gameId, addGoal);
+
+    // update player stats for goal scorer and assists
+    await IncrementGoalsForPlayerInDatabase(addGoal.scoredBy, game.seasonId);
+    await IncrementGoalsForTeamInDatabase(game.team.id, addGoal.scoredBy, game.seasonId);
+
+    if (addGoal.assist1) {
+        await IncrementAssistsForPlayerInDatabase(addGoal.assist1, game.seasonId);
+        await IncrementAssistsForTeamInDatabase(game.team.id, addGoal.assist1, game.seasonId);
+    }
+    if (addGoal.assist2) {
+        await IncrementAssistsForPlayerInDatabase(addGoal.assist2, game.seasonId);
+        await IncrementAssistsForTeamInDatabase(game.team.id, addGoal.assist2, game.seasonId);
+    }
+}
+
 const createHydratedGameObject = async (
     postGame: IGamePostBody
 ): Promise<IGame> => {
     return {
         _id: generateIdWithPrefix('GME'),
         date: new Date(postGame.date),
+        seasonId: postGame.seasonId,
         type: postGame.type,
         opponentTeam: {
             name: postGame.opponentName,
