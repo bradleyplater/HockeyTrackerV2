@@ -1,7 +1,7 @@
 import express from 'express';
 import { ApiKeyValidation } from '../middleware/authentication';
 import * as logger from '../helpers/logger';
-import { AddGoalToGame, CreateGame } from '../services/game.service';
+import { AddGoalToGame, CreateGame, GetAllGames, RemoveGoalFromGame } from '../services/game.service';
 import { StatusCodes } from 'http-status-codes';
 import { commonErrorHandler } from '../helpers/error-helper';
 import { IAddGoalBody, IGamePostBody } from '../types/GameTypes';
@@ -17,6 +17,21 @@ const router = express.Router();
 
 router.use(ApiKeyValidation);
 router.use(express.json());
+
+router.get('/', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Get All Games');
+        
+        const games = await GetAllGames();
+        
+        logger.LogRouteFinished('Get All Games');
+        res.status(StatusCodes.OK).json(games);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Get All Games');
+        commonErrorHandler(error, res);
+    }
+});
 
 router.post('/', async (req, res) => {
     try {
@@ -61,6 +76,21 @@ router.patch('/addgoal/:gameid', async (req, res) => {
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Add Goal to Game');
+        commonErrorHandler(error, res);
+    }
+});
+
+router.patch('/removegoal/:gameid/:goalid', async (req, res) => {
+    try {
+        const gameId = req.params.gameid;
+        const goalId = req.params.goalid;
+
+        const updatedGame = await RemoveGoalFromGame(gameId, goalId);
+
+        res.status(200).json({ message: 'Goal removed successfully', game: updatedGame });
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Remove Goal to Game');
         commonErrorHandler(error, res);
     }
 });

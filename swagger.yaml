@@ -318,9 +318,25 @@ paths:
                     description: Server error
 
     /game:
+        get:
+            summary: Get all games
+            description: Retrieves all games from the database
+            responses:
+                '200':
+                    description: Games retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Game'
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
         post:
             summary: Create a new game
-            description: Creates a new game with the provided details
+            description: Creates a new game with team roster and opponent details
             requestBody:
                 required: true
                 content:
@@ -336,6 +352,81 @@ paths:
                                 $ref: '#/components/schemas/Game'
                 '400':
                     description: Invalid request body
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/addgoal/{gameId}:
+        patch:
+            summary: Add goal to game
+            description: Adds a goal to an existing game with scorer and assist information
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AddGoalBody'
+            responses:
+                '200':
+                    description: Goal added successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Goal added successfully'
+                '400':
+                    description: Invalid request body or game not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/removegoal/{gameId}/{goalId}:
+        patch:
+            summary: Remove goal from game
+            description: Removes a specific goal from an existing game by goal ID
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+                - name: goalId
+                  in: path
+                  required: true
+                  description: Unique Goal ID
+                  schema:
+                      type: string
+                      example: GOL123456
+            responses:
+                '200':
+                    description: Goal removed successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Goal removed successfully'
+                                    game:
+                                        $ref: '#/components/schemas/Game'
+                '400':
+                    description: Invalid request parameters or goal not found
                 '403':
                     description: Unauthorised
                 '500':
@@ -720,6 +811,37 @@ components:
                 - number
                 - team
                 - opponent
+
+        AddGoalBody:
+            type: object
+            properties:
+                scoredBy:
+                    type: string
+                    description: Player ID who scored the goal
+                    example: 'PLR123456'
+                assist1:
+                    type: string
+                    description: Player ID for first assist (optional)
+                    example: 'PLR789012'
+                assist2:
+                    type: string
+                    description: Player ID for second assist (optional)
+                    example: 'PLR345678'
+                type:
+                    $ref: '#/components/schemas/GoalType'
+                minute:
+                    type: number
+                    description: Minute when goal was scored
+                    example: 15
+                second:
+                    type: number
+                    description: Second when goal was scored
+                    example: 30
+            required:
+                - scoredBy
+                - type
+                - minute
+                - second
 
         GoalType:
             type: string

@@ -37,6 +37,7 @@ export interface IGamePlayerStats {
 }
 
 export interface IGameTeamGoals extends IBaseGameStat {
+    _id: string; // unique goal ID
     scoredBy: string; // playerId
     assist1: string; // playerId
     assist2: string; // playerId

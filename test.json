@@ -48,7 +48,8 @@
             {
                 "scoredBy": "John Smith",
                 "minute": 10,
-                "second": 30
+                "second": 30,
+                "type": "EVEN"
             }
         ],
         "penalties": [

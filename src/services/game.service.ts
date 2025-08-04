@@ -1,15 +1,14 @@
-import { generateGameMock } from '../../tests/helpers/game-mock';
 import { generateIdWithPrefix } from '../helpers/id-helper';
-import { AddGoalToGameInDatabase, GetGameById, InsertGameToDatabase } from '../repository/game.repository';
+import { AddGoalToGameInDatabase, GetAllGamesFromDatabase, GetGameById, InsertGameToDatabase, RemoveGoalFromGameInDatabase } from '../repository/game.repository';
 import {
-    AddStatsObjectToPlayersInDatabase,
+    DecrementAssistsForPlayerInDatabase,
+    DecrementGoalsForPlayerInDatabase,
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
     IncrementAssistsForPlayerInDatabase,
     IncrementGoalsForPlayerInDatabase,
-    IPlayer,
 } from '../repository/player.repository';
-import { IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase } from '../repository/team.repository';
+import { DecrementAssistsForTeamInDatabase, DecrementGoalsForTeamInDatabase, IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase } from '../repository/team.repository';
 import { IAddGoalBody, IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
 import { addGameToPlayers } from './player.service';
 import { addGameToTeam } from './team.service';
@@ -27,6 +26,10 @@ export const CreateGame = async (postGame: IGamePostBody) => {
     const returnedGame = await InsertGameToDatabase(hydratedGame);
 
     return returnedGame;
+};
+
+export const GetAllGames = async (): Promise<IGame[]> => {
+    return await GetAllGamesFromDatabase();
 };
 
 export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody) => {
@@ -56,6 +59,42 @@ export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody) => {
         await IncrementAssistsForPlayerInDatabase(addGoal.assist2, game.seasonId);
         await IncrementAssistsForTeamInDatabase(game.team.id, addGoal.assist2, game.seasonId);
     }
+}
+
+/**
+ * This method will remove a specific goal from a game
+ * It will decrement all relevant statistics for players and teams
+ * 
+ * @param gameId - The ID of the game to remove the goal from
+ * @param goalId - The ID of the specific goal to remove
+ * @returns The updated game
+ */
+export const RemoveGoalFromGame = async (gameId: string, goalId: string): Promise<IGame> => {
+    // Remove the goal from the game database and get the removed goal info
+    const { result, removedGoal } = await RemoveGoalFromGameInDatabase(gameId, goalId);
+    
+    // Get the updated game
+    const game = await GetGameById(gameId);
+    
+    // Decrement goals for the scorer in player database
+    await DecrementGoalsForPlayerInDatabase(removedGoal.scoredBy, game.seasonId);
+    
+    // Decrement goals for the scorer in team database
+    await DecrementGoalsForTeamInDatabase(game.team.id, removedGoal.scoredBy, game.seasonId);
+    
+    // Decrement assists for assist1 if it exists
+    if (removedGoal.assist1) {
+        await DecrementAssistsForPlayerInDatabase(removedGoal.assist1, game.seasonId);
+        await DecrementAssistsForTeamInDatabase(game.team.id, removedGoal.assist1, game.seasonId);
+    }
+    
+    // Decrement assists for assist2 if it exists
+    if (removedGoal.assist2) {
+        await DecrementAssistsForPlayerInDatabase(removedGoal.assist2, game.seasonId);
+        await DecrementAssistsForTeamInDatabase(game.team.id, removedGoal.assist2, game.seasonId);
+    }
+    
+    return game;
 }
 
 const createHydratedGameObject = async (
@@ -121,7 +160,7 @@ const generateGamePlayers = async (
             return acc;
         }
 
-        if (!player.teams.find((t) => t.teamId === teamId)) {
+        if (!player.teams.find((t: { teamId: string }) => t.teamId === teamId)) {
             console.log(
                 `Player not added to game due to not existing in team`,
                 playerId
