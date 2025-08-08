@@ -1,15 +1,17 @@
 import { generateIdWithPrefix } from '../helpers/id-helper';
-import { AddGoalToGameInDatabase, GetAllGamesFromDatabase, GetGameById, InsertGameToDatabase, RemoveGoalFromGameInDatabase } from '../repository/game.repository';
+import { AddGoalToGameInDatabase, AddOpponentGoalToGameInDatabase, AddPenaltyToGameInDatabase, AddOpponentPenaltyToGameInDatabase, GetAllGamesFromDatabase, GetGameById, InsertGameToDatabase, RemoveGoalFromGameInDatabase, RemoveOpponentGoalFromGameInDatabase, RemovePenaltyFromGameInDatabase, RemoveOpponentPenaltyFromGameInDatabase } from '../repository/game.repository';
 import {
     DecrementAssistsForPlayerInDatabase,
     DecrementGoalsForPlayerInDatabase,
+    DecrementPimsForPlayerInDatabase,
     GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
     IncrementAssistsForPlayerInDatabase,
     IncrementGoalsForPlayerInDatabase,
+    IncrementPimsForPlayerInDatabase,
 } from '../repository/player.repository';
-import { DecrementAssistsForTeamInDatabase, DecrementGoalsForTeamInDatabase, IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase } from '../repository/team.repository';
-import { IAddGoalBody, IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
+import { DecrementAssistsForTeamInDatabase, DecrementGoalsForTeamInDatabase, DecrementPimsForTeamInDatabase, IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase, IncrementPimsForTeamInDatabase } from '../repository/team.repository';
+import { IAddGoalBody, IAddOpponentGoalBody, IAddPenaltyBody, IAddOpponentPenaltyBody, IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
 import { addGameToPlayers } from './player.service';
 import { addGameToTeam } from './team.service';
 
@@ -178,4 +180,82 @@ const generateGamePlayers = async (
     }, [] as IGamePlayer[]);
 
     return gamePlayers;
+};
+
+export const AddOpponentGoalToGame = async (gameId: string, addGoal: IAddOpponentGoalBody) => {
+    // Check game exists
+    await GetGameById(gameId);
+    
+    // Add new goal object to opponent team
+    const newGoal = await AddOpponentGoalToGameInDatabase(gameId, addGoal);
+    
+    return newGoal;
+};
+
+export const RemoveOpponentGoalFromGame = async (gameId: string, goalId: string) => {
+    // Check game exists
+    await GetGameById(gameId);
+    
+    // Remove the specific opponent goal from the game
+    const { result, removedGoal } = await RemoveOpponentGoalFromGameInDatabase(gameId, goalId);
+    
+    return { message: 'Opponent goal removed successfully', removedGoal };
+};
+
+export const AddPenaltyToGame = async (gameId: string, addPenalty: IAddPenaltyBody) => {
+    // Check game exists
+    const game = await GetGameById(gameId);
+    
+    // Add new penalty object to team
+    const newPenalty = await AddPenaltyToGameInDatabase(gameId, addPenalty);
+    
+    // Update player and team PIMS stats (only if not a bench penalty)
+    if (addPenalty.playerId !== 'BENCH') {
+        // Update player stats
+        await IncrementPimsForPlayerInDatabase(addPenalty.playerId, game.seasonId, addPenalty.duration);
+        
+        // Update team and roster stats
+        await IncrementPimsForTeamInDatabase(game.team.id, addPenalty.playerId, game.seasonId, addPenalty.duration);
+    }
+    
+    return newPenalty;
+};
+
+export const RemovePenaltyFromGame = async (gameId: string, penaltyId: string) => {
+    // Check game exists
+    const game = await GetGameById(gameId);
+    
+    // Remove the specific penalty from the game
+    const { result, removedPenalty } = await RemovePenaltyFromGameInDatabase(gameId, penaltyId);
+    
+    // Update player and team PIMS stats (only if not a bench penalty)
+    if (removedPenalty.playerId !== 'BENCH') {
+        // Update player stats
+        await DecrementPimsForPlayerInDatabase(removedPenalty.playerId, game.seasonId, removedPenalty.duration);
+        
+        // Update team and roster stats
+        await DecrementPimsForTeamInDatabase(game.team.id, removedPenalty.playerId, game.seasonId, removedPenalty.duration);
+    }
+    
+    return { message: 'Penalty removed successfully', removedPenalty };
+};
+
+export const AddOpponentPenaltyToGame = async (gameId: string, addPenalty: IAddOpponentPenaltyBody) => {
+    // Check game exists
+    await GetGameById(gameId);
+    
+    // Add new penalty object to opponent team
+    const newPenalty = await AddOpponentPenaltyToGameInDatabase(gameId, addPenalty);
+    
+    return newPenalty;
+};
+
+export const RemoveOpponentPenaltyFromGame = async (gameId: string, penaltyId: string) => {
+    // Check game exists
+    await GetGameById(gameId);
+    
+    // Remove the specific opponent penalty from the game
+    const { result, removedPenalty } = await RemoveOpponentPenaltyFromGameInDatabase(gameId, penaltyId);
+    
+    return { message: 'Opponent penalty removed successfully', removedPenalty };
 };

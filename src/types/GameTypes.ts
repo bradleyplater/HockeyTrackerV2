@@ -45,17 +45,20 @@ export interface IGameTeamGoals extends IBaseGameStat {
 }
 
 export interface IGameOpponentGoals extends IBaseGameStat {
-    name: string; // name of player
+    _id: string; // unique goal ID
+    scoredBy: string; // name of player
     type: GoalTypes;
 }
 
 export interface IGameTeamPenalty extends IBaseGameStat {
+    _id: string; // unique penalty ID
     playerId: string;
     type: PenaltyType;
     duration: number; // in minutes
 }
 
 export interface IGameOpponentPenalty extends IBaseGameStat {
+    _id: string; // unique penalty ID
     name: string; // name of player
     type: PenaltyType;
     duration: number; // in minutes
@@ -94,6 +97,29 @@ export interface IAddGoalBody {
     scoredBy: string; // playerId
     assist1: string; // playerId
     assist2: string; // playerId
+}
+
+export interface IAddOpponentGoalBody {
+    minute: number;
+    second: number;
+    type: GoalTypes;
+    scoredBy: string; // player name
+}
+
+export interface IAddPenaltyBody {
+    minute: number;
+    second: number;
+    type: PenaltyType;
+    playerId: string; // playerId or "BENCH"
+    duration: number; // in minutes
+}
+
+export interface IAddOpponentPenaltyBody {
+    minute: number;
+    second: number;
+    type: PenaltyType;
+    playerName: string; // opponent player name
+    duration: number; // in minutes
 }
 
 type GoalTypes = 'EVEN' | 'SH' | 'PP';

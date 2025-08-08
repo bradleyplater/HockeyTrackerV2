@@ -51,13 +51,13 @@ export async function InsertTeamToDatabase(team: ITeam) {
     return storedPlayer;
 }
 
-export async function GetAllTeamsFromDatabase(): Promise<ITeam[]> {
+export async function GetAllTeamsFromDatabase() {
     const teams = await collections.team?.find<ITeam>({}).toArray();
 
     return teams ?? [];
 }
 
-export async function GetTeamByIdFromDatabase(id: string): Promise<ITeam> {
+export async function GetTeamByIdFromDatabase(id: string) {
     const team = await collections.team?.findOne<ITeam>({ _id: id });
 
     if (!team) {
@@ -67,22 +67,43 @@ export async function GetTeamByIdFromDatabase(id: string): Promise<ITeam> {
     return team;
 }
 
-/**
- * Will add a player to a team in the database
- * In the event something goes wrong, it will throw an error and get caught.
- * No return because all logic based on this result is done in this method.
- *
- * @param playerToAdd Player to add to the team
- * @param teamId Team to add the player to
- * @returns Promise<void> ()
- */
-export async function AddPlayerToTeamInDatabase(
-    playerToAdd: ITeamPlayerDetails,
+export async function RemoveTeamByIdFromDatabase(id: string) {
+    const deleteResult = await collections.team?.deleteOne({ _id: id });
+
+    if (!deleteResult || deleteResult.deletedCount === 0) {
+        throw TeamErrors.TEAM_NOT_FOUND;
+    }
+}
+
+export async function UpdateTeamDetailsByIdFromDatabase(
+    id: string,
+    updatedDetails: ITeam
+) {
+    const updateResult = await collections.team?.updateOne(
+        { _id: id },
+        {
+            $set: {
+                name: updatedDetails.name,
+            },
+        }
+    );
+
+    if (!updateResult || updateResult.modifiedCount === 0) {
+        throw TeamErrors.TEAM_NOT_FOUND;
+    }
+}
+
+export async function AddPlayerToTeamByIdFromDatabase(
+    player: ITeamPlayerDetails,
     teamId: string
 ) {
     const updateResult = await collections.team?.updateOne(
         { _id: teamId },
-        { $push: { players: playerToAdd } }
+        {
+            $push: {
+                players: player,
+            },
+        }
     );
 
     if (!updateResult || updateResult.modifiedCount === 0) {
@@ -114,89 +135,63 @@ export async function RemovePlayerFromTeamInDatabase(
 }
 
 /**
- * This method will add a stats object to a player in the database
- * It assumes that the players do NOT have a stats object. If they do this will fail.
+ * This method will add a stats object to a team in the database
+ * It assumes that the team does NOT have a stats object. If they do this will fail.
  * In the event something goes wrong, it will throw an error and get caught.
  * No return because all logic based on this result is done in this method.
  *
- * @param playerIds A list of playersIds to add stats to
+ * @param teamId The teamId to add stats to
  * @param seasonId  The seasonId to add stats for
  */
-export async function AddStatsObjectToTeamPlayersInDatabase(
-    playerIds: string[],
-    teamId: string,
-    seasonId: string
-) {
-    // First, get the team to work with the current data
-    const team = await collections.team?.findOne({ _id: teamId });
-    
-    if (!team) {
-        throw TeamErrors.TEAM_NOT_FOUND;
-    }
-
-    // Update each player individually
-    for (const playerId of playerIds) {
-        const playerIndex = team.players.findIndex(p => p.playerId === playerId);
-        
-        if (playerIndex !== -1) {
-            // Check if player already has stats for this season
-            const hasSeasonStats = team.players[playerIndex].stats.some(
-                stat => stat.seasonId === seasonId
-            );
-            
-            if (!hasSeasonStats) {
-                // Add stats object to this specific player
-                await collections.team?.updateOne(
-                    { 
-                        _id: teamId,
-                        'players.playerId': playerId
-                    },
-                    {
-                        $push: {
-                            'players.$.stats': {
-                                seasonId: seasonId,
-                                gamesPlayed: 0,
-                                goals: 0,
-                                assists: 0,
-                                pims: 0
-                            }
-                        }
-                    }
-                );
-            }
-        }
-    }
-
-    // Verify the update worked
-    const updatedTeam = await collections.team?.findOne({
-        _id: teamId,
-        'players.stats.seasonId': seasonId
-    });
-
-    if (!updatedTeam) {
-        console.warn('Failed to add stats to team players');
-        throw TeamErrors.STATS_NOT_ADDED;
-    }
-}
-
 export async function AddStatsObjectToTeamInDatabase(
     teamId: string,
     seasonId: string
 ) {
-    // First, get the team to work with the current data
-    const team = await collections.team?.findOne({ _id: teamId });
-    
-    if (!team) {
-        throw TeamErrors.TEAM_NOT_FOUND;
-    }
-
     await collections.team?.updateOne(
-        { 
-            _id: teamId,
-        },
+        { _id: teamId, 'stats.seasonId': { $ne: seasonId } },
         {
             $push: {
                 stats: {
+                    seasonId: seasonId,
+                    gamesPlayed: 0,
+                    goals: 0,
+                    assists: 0,
+                    pims: 0
+                }
+            }
+        }
+    );
+
+    // Verify the update worked
+    const updatedTeam = await collections.team?.findOne({
+        _id: teamId,
+        'stats.seasonId': seasonId
+    });
+
+    if (!updatedTeam) {
+        console.warn('Failed to add stats to team');
+        throw TeamErrors.STATS_NOT_ADDED;
+    }
+}
+
+/**
+ * This method will add a stats object to players in a team in the database
+ * It assumes that the players do NOT have a stats object. If they do this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ *
+ * @param teamId The teamId to add stats to
+ * @param seasonId  The seasonId to add stats for
+ */
+export async function AddStatsObjectToPlayersInTeamInDatabase(
+    teamId: string,
+    seasonId: string
+) {
+    await collections.team?.updateOne(
+        { _id: teamId },
+        {
+            $push: {
+                'players.$[].stats': {
                     seasonId: seasonId,
                     gamesPlayed: 0,
                     goals: 0,
@@ -382,6 +377,56 @@ export async function IncrementAssistsForTeamInDatabase(teamId: string, playerId
 }
 
 /**
+ * This method will increment the penalty minutes (PIMS) for a team and a specific player in the database
+ * It updates both the team's overall PIMS stats and the individual player's PIMS stats
+ * It assumes that both the team and player have stats objects for the given season.
+ * 
+ * @param teamId - The ID of the team to increment PIMS for
+ * @param playerId - The ID of the player who got the penalty
+ * @param seasonId - The season ID to increment PIMS for
+ * @param penaltyMinutes - The number of penalty minutes to add (default: 2)
+ */
+export async function IncrementPimsForTeamInDatabase(teamId: string, playerId: string, seasonId: string, penaltyMinutes: number = 2) {
+    // Update team's overall PIMS stats
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.pims': penaltyMinutes
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    // Update individual player's PIMS stats within the team
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].pims': penaltyMinutes
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+/**
  * This method will decrement the goals for a team and a specific player in the database
  * It updates both the team's overall goal stats and the individual player's goal stats
  * It assumes that both the team and player have stats objects for the given season.
@@ -464,6 +509,56 @@ export async function DecrementAssistsForTeamInDatabase(teamId: string, playerId
         {
             $inc: {
                 'players.$[player].stats.$[stat].assists': -1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+/**
+ * This method will decrement the penalty minutes (PIMS) for a team and a specific player in the database
+ * It updates both the team's overall PIMS stats and the individual player's PIMS stats
+ * It assumes that both the team and player have stats objects for the given season.
+ * 
+ * @param teamId - The ID of the team to decrement PIMS for
+ * @param playerId - The ID of the player who got the penalty removed
+ * @param seasonId - The season ID to decrement PIMS for
+ * @param penaltyMinutes - The number of penalty minutes to subtract (default: 2)
+ */
+export async function DecrementPimsForTeamInDatabase(teamId: string, playerId: string, seasonId: string, penaltyMinutes: number = 2) {
+    // Update team's overall PIMS stats
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.pims': -penaltyMinutes
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    // Update individual player's PIMS stats within the team
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].pims': -penaltyMinutes
             }
         },
         {

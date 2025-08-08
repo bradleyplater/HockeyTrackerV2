@@ -1,10 +1,10 @@
 import express from 'express';
 import { ApiKeyValidation } from '../middleware/authentication';
 import * as logger from '../helpers/logger';
-import { AddGoalToGame, CreateGame, GetAllGames, RemoveGoalFromGame } from '../services/game.service';
+import { AddGoalToGame, AddOpponentGoalToGame, AddPenaltyToGame, AddOpponentPenaltyToGame, CreateGame, GetAllGames, RemoveGoalFromGame, RemoveOpponentGoalFromGame, RemovePenaltyFromGame, RemoveOpponentPenaltyFromGame } from '../services/game.service';
 import { StatusCodes } from 'http-status-codes';
 import { commonErrorHandler } from '../helpers/error-helper';
-import { IAddGoalBody, IGamePostBody } from '../types/GameTypes';
+import { IAddGoalBody, IAddOpponentGoalBody, IAddPenaltyBody, IAddOpponentPenaltyBody, IGamePostBody } from '../types/GameTypes';
 import {
     isValidName,
     isValidPlayerId,
@@ -94,6 +94,72 @@ router.patch('/removegoal/:gameid/:goalid', async (req, res) => {
         commonErrorHandler(error, res);
     }
 });
+
+router.patch('/addopponentgoal/:gameid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Add Opponent Goal');
+        
+        const gameId = req.params.gameid;
+        const addGoalBody: IAddOpponentGoalBody = req.body;
+        
+        if (!ValidateAddOpponentGoalBody(addGoalBody)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+        
+        const result = await AddOpponentGoalToGame(gameId, addGoalBody);
+        
+        logger.LogRouteFinished('Add Opponent Goal');
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Add Opponent Goal');
+        commonErrorHandler(error, res);
+    }
+});
+
+router.patch('/removeopponentgoal/:gameid/:goalid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Remove Opponent Goal');
+        
+        const gameId = req.params.gameid;
+        const goalId = req.params.goalid;
+        
+        const result = await RemoveOpponentGoalFromGame(gameId, goalId);
+        
+        logger.LogRouteFinished('Remove Opponent Goal');
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Remove Opponent Goal');
+        commonErrorHandler(error, res);
+    }
+});
+
+const ValidateAddOpponentGoalBody = (body: IAddOpponentGoalBody): boolean => {
+    if (!body.scoredBy || typeof body.scoredBy !== 'string' || body.scoredBy.trim() === '') {
+        console.log('Invalid scoredBy', body.scoredBy);
+        return false;
+    }
+    
+    if (typeof body.minute !== 'number' || body.minute < 0 || body.minute > 60) {
+        console.log('Invalid minute', body.minute);
+        return false;
+    }
+    
+    if (typeof body.second !== 'number' || body.second < 0 || body.second > 59) {
+        console.log('Invalid second', body.second);
+        return false;
+    }
+    
+    if (!body.type || !['EVEN', 'SH', 'PP'].includes(body.type)) {
+        console.log('Invalid type', body.type);
+        return false;
+    }
+    
+    return true;
+};
 
 const ValidateAddGoalToGameBody = (body: IAddGoalBody): boolean => {
     // Validate minute (should be between 0-60 for hockey periods)
@@ -195,6 +261,161 @@ const ValidatePostGameBody = (body: IGamePostBody): boolean => {
 
     // Potentially validate against duplicate players
 
+    return true;
+};
+
+// Add penalty endpoint
+router.patch('/addpenalty/:gameid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Add Penalty to Game');
+        
+        const gameId = req.params.gameid;
+        const body: IAddPenaltyBody = req.body;
+        
+        // Validate request body
+        if (!isValidAddPenaltyBody(body)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+        
+        const result = await AddPenaltyToGame(gameId, body);
+        
+        logger.LogRouteFinished('Add Penalty to Game');
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Add Penalty to Game');
+        commonErrorHandler(error, res);
+    }
+});
+
+// Remove penalty endpoint
+router.patch('/removepenalty/:gameid/:penaltyid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Remove Penalty from Game');
+        
+        const gameId = req.params.gameid;
+        const penaltyId = req.params.penaltyid;
+        
+        const result = await RemovePenaltyFromGame(gameId, penaltyId);
+        
+        logger.LogRouteFinished('Remove Penalty from Game');
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Remove Penalty from Game');
+        commonErrorHandler(error, res);
+    }
+});
+
+// Add opponent penalty endpoint
+router.patch('/addopponentpenalty/:gameid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Add Opponent Penalty to Game');
+        
+        const gameId = req.params.gameid;
+        const body: IAddOpponentPenaltyBody = req.body;
+        
+        // Validate request body
+        if (!isValidAddOpponentPenaltyBody(body)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+        
+        const result = await AddOpponentPenaltyToGame(gameId, body);
+        
+        logger.LogRouteFinished('Add Opponent Penalty to Game');
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Add Opponent Penalty to Game');
+        commonErrorHandler(error, res);
+    }
+});
+
+// Remove opponent penalty endpoint
+router.patch('/removeopponentpenalty/:gameid/:penaltyid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Remove Opponent Penalty from Game');
+        
+        const gameId = req.params.gameid;
+        const penaltyId = req.params.penaltyid;
+        
+        const result = await RemoveOpponentPenaltyFromGame(gameId, penaltyId);
+        
+        logger.LogRouteFinished('Remove Opponent Penalty from Game');
+        res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Remove Opponent Penalty from Game');
+        commonErrorHandler(error, res);
+    }
+});
+
+// Validation functions for penalty bodies
+const isValidAddPenaltyBody = (body: any): body is IAddPenaltyBody => {
+    if (!body || typeof body !== 'object') {
+        return false;
+    }
+    
+    // Check required fields
+    if (typeof body.minute !== 'number' || body.minute < 0 || body.minute > 60) {
+        return false;
+    }
+    
+    if (typeof body.second !== 'number' || body.second < 0 || body.second > 59) {
+        return false;
+    }
+    
+    if (typeof body.duration !== 'number' || body.duration <= 0) {
+        return false;
+    }
+    
+    if (!body.type || typeof body.type !== 'string') {
+        return false;
+    }
+    
+    // playerId can be a valid player ID or "BENCH"
+    if (!body.playerId || (typeof body.playerId !== 'string')) {
+        return false;
+    }
+    
+    if (body.playerId !== 'BENCH' && !isValidPlayerId(body.playerId)) {
+        return false;
+    }
+    
+    return true;
+};
+
+const isValidAddOpponentPenaltyBody = (body: any): body is IAddOpponentPenaltyBody => {
+    if (!body || typeof body !== 'object') {
+        return false;
+    }
+    
+    // Check required fields
+    if (typeof body.minute !== 'number') {
+        return false;
+    }
+    
+    if (typeof body.second !== 'number') {
+        return false;
+    }
+    
+    if (typeof body.duration !== 'number' || body.duration <= 0) {
+        return false;
+    }
+    
+    if (!body.type || typeof body.type !== 'string') {
+        return false;
+    }
+    
+    // playerName can be a player name or "BENCH"
+    if (!body.playerName || typeof body.playerName !== 'string') {
+        return false;
+    }
+    
     return true;
 };
 

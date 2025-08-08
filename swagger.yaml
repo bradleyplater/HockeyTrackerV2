@@ -432,6 +432,219 @@ paths:
                 '500':
                     description: Server error
 
+    /game/addopponentgoal/{gameId}:
+        patch:
+            summary: Add opponent goal to game
+            description: Adds a goal to the opponent team in an existing game
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AddOpponentGoalBody'
+            responses:
+                '200':
+                    description: Opponent goal added successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GameOpponentGoal'
+                '400':
+                    description: Invalid request body or game not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/removeopponentgoal/{gameId}/{goalId}:
+        patch:
+            summary: Remove opponent goal from game
+            description: Removes a specific opponent goal from an existing game by goal ID
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+                - name: goalId
+                  in: path
+                  required: true
+                  description: Unique Opponent Goal ID
+                  schema:
+                      type: string
+                      example: OGL123456
+            responses:
+                '200':
+                    description: Opponent goal removed successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Opponent goal removed successfully'
+                                    removedGoal:
+                                        $ref: '#/components/schemas/GameOpponentGoal'
+                '400':
+                    description: Invalid request parameters or goal not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/addpenalty/{gameId}:
+        patch:
+            summary: Add penalty to game
+            description: Adds a penalty to the team in an existing game
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AddPenaltyBody'
+            responses:
+                '200':
+                    description: Penalty added successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GameTeamPenalty'
+                '400':
+                    description: Invalid request body or game not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/removepenalty/{gameId}/{penaltyId}:
+        patch:
+            summary: Remove penalty from game
+            description: Removes a specific penalty from the team in an existing game by penalty ID
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+                - name: penaltyId
+                  in: path
+                  required: true
+                  description: Unique Penalty ID
+                  schema:
+                      type: string
+                      example: PEN123456
+            responses:
+                '200':
+                    description: Penalty removed successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Penalty removed successfully'
+                                    removedPenalty:
+                                        $ref: '#/components/schemas/GameTeamPenalty'
+                '400':
+                    description: Invalid request parameters or penalty not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/addopponentpenalty/{gameId}:
+        patch:
+            summary: Add opponent penalty to game
+            description: Adds a penalty to the opponent team in an existing game
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AddOpponentPenaltyBody'
+            responses:
+                '200':
+                    description: Opponent penalty added successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GameOpponentPenalty'
+                '400':
+                    description: Invalid request body or game not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/removeopponentpenalty/{gameId}/{penaltyId}:
+        patch:
+            summary: Remove opponent penalty from game
+            description: Removes a specific penalty from the opponent team in an existing game by penalty ID
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+                - name: penaltyId
+                  in: path
+                  required: true
+                  description: Unique Opponent Penalty ID
+                  schema:
+                      type: string
+                      example: OPP123456
+            responses:
+                '200':
+                    description: Opponent penalty removed successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Opponent penalty removed successfully'
+                                    removedPenalty:
+                                        $ref: '#/components/schemas/GameOpponentPenalty'
+                '400':
+                    description: Invalid request parameters or penalty not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
 components:
     schemas:
         Season:
@@ -843,6 +1056,57 @@ components:
                 - minute
                 - second
 
+        AddOpponentGoalBody:
+            type: object
+            properties:
+                scoredBy:
+                    type: string
+                    description: Name of the opponent player who scored
+                    example: 'John Smith'
+                type:
+                    $ref: '#/components/schemas/GoalType'
+                minute:
+                    type: number
+                    description: Minute when goal was scored
+                    example: 15
+                second:
+                    type: number
+                    description: Second when goal was scored
+                    example: 30
+            required:
+                - scoredBy
+                - type
+                - minute
+                - second
+
+        GameOpponentGoal:
+            type: object
+            properties:
+                _id:
+                    type: string
+                    description: Unique goal ID
+                    example: 'OGL123456'
+                scoredBy:
+                    type: string
+                    description: Name of the opponent player who scored
+                    example: 'John Smith'
+                type:
+                    $ref: '#/components/schemas/GoalType'
+                minute:
+                    type: number
+                    description: Minute when goal was scored
+                    example: 15
+                second:
+                    type: number
+                    description: Second when goal was scored
+                    example: 30
+            required:
+                - _id
+                - scoredBy
+                - type
+                - minute
+                - second
+
         GoalType:
             type: string
             enum: [EVEN, SH, PP]
@@ -917,3 +1181,125 @@ components:
                 - TOOM: Too many men on the ice
                 - TRIP: Tripping
                 - UNSP: Unsportsmanlike conduct
+
+        AddPenaltyBody:
+            type: object
+            properties:
+                playerId:
+                    type: string
+                    description: Player ID who received the penalty or "BENCH" for bench penalty
+                    example: 'PLR123456'
+                type:
+                    $ref: '#/components/schemas/PenaltyType'
+                minute:
+                    type: number
+                    description: Minute when penalty occurred
+                    example: 15
+                second:
+                    type: number
+                    description: Second when penalty occurred
+                    example: 30
+                duration:
+                    type: number
+                    description: Duration of penalty in minutes
+                    example: 2
+            required:
+                - playerId
+                - type
+                - minute
+                - second
+                - duration
+
+        AddOpponentPenaltyBody:
+            type: object
+            properties:
+                playerName:
+                    type: string
+                    description: Name of the opponent player who received the penalty or "BENCH" for bench penalty
+                    example: 'John Smith'
+                type:
+                    $ref: '#/components/schemas/PenaltyType'
+                minute:
+                    type: number
+                    description: Minute when penalty occurred
+                    example: 15
+                second:
+                    type: number
+                    description: Second when penalty occurred
+                    example: 30
+                duration:
+                    type: number
+                    description: Duration of penalty in minutes
+                    example: 2
+            required:
+                - playerName
+                - type
+                - minute
+                - second
+                - duration
+
+        GameTeamPenalty:
+            type: object
+            properties:
+                _id:
+                    type: string
+                    description: Unique penalty ID
+                    example: 'PEN123456'
+                playerId:
+                    type: string
+                    description: Player ID who received the penalty or "BENCH" for bench penalty
+                    example: 'PLR123456'
+                type:
+                    $ref: '#/components/schemas/PenaltyType'
+                minute:
+                    type: number
+                    description: Minute when penalty occurred
+                    example: 15
+                second:
+                    type: number
+                    description: Second when penalty occurred
+                    example: 30
+                duration:
+                    type: number
+                    description: Duration of penalty in minutes
+                    example: 2
+            required:
+                - _id
+                - playerId
+                - type
+                - minute
+                - second
+                - duration
+
+        GameOpponentPenalty:
+            type: object
+            properties:
+                _id:
+                    type: string
+                    description: Unique penalty ID
+                    example: 'OPP123456'
+                name:
+                    type: string
+                    description: Name of the opponent player who received the penalty or "BENCH" for bench penalty
+                    example: 'John Smith'
+                type:
+                    $ref: '#/components/schemas/PenaltyType'
+                minute:
+                    type: number
+                    description: Minute when penalty occurred
+                    example: 15
+                second:
+                    type: number
+                    description: Second when penalty occurred
+                    example: 30
+                duration:
+                    type: number
+                    description: Duration of penalty in minutes
+                    example: 2
+            required:
+                - _id
+                - name
+                - type
+                - minute
+                - second
+                - duration

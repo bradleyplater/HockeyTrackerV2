@@ -6,9 +6,9 @@ import {
     RemoveTeamFromPlayerInDatabase,
 } from '../repository/player.repository';
 import {
-    AddPlayerToTeamInDatabase,
+    AddPlayerToTeamByIdFromDatabase,
     AddStatsObjectToTeamInDatabase,
-    AddStatsObjectToTeamPlayersInDatabase,
+    AddStatsObjectToPlayersInTeamInDatabase,
     GetTeamByIdFromDatabase,
     IncrementGamesPlayedForTeamInDatabase,
     IncrementGamesPlayedForTeamPlayerInDatabase,
@@ -67,7 +67,7 @@ export const addPlayerToTeam = async (
         stats: [],
     };
 
-    await AddPlayerToTeamInDatabase(newPlayer, teamId);
+    await AddPlayerToTeamByIdFromDatabase(newPlayer, teamId);
     await AddTeamToPlayerByIdFromDatabase(
         { teamId, number: playerNumber },
         playerId
@@ -102,7 +102,7 @@ export const addGameToTeam = async (teamId: string, roster: string[], seasonId: 
     .filter(player => !player.stats.some(stat => stat.seasonId === seasonId)) // Who don't have stats for this season
     .map(player => player.playerId);
 
-    await AddStatsObjectToTeamPlayersInDatabase(playerIds, teamId, seasonId);
+    await AddStatsObjectToPlayersInTeamInDatabase(teamId, seasonId);
 
     const hasTeamStats = team.stats.some(stat => stat.seasonId === seasonId);
 

@@ -42,10 +42,11 @@
             }
         ]
     },
-    "awayTeam": {
+    "opponentTeam": {
         "name": "Peterborough Warriors",
         "goals": [
             {
+                "_id": "OGL123456",
                 "scoredBy": "John Smith",
                 "minute": 10,
                 "second": 30,

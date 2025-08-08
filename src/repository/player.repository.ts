@@ -295,3 +295,55 @@ export async function DecrementAssistsForPlayerInDatabase(playerId: string, seas
         throw PlayerErrors.STATS_NOT_UPDATED;
     }
 }
+
+/**
+ * This method will increment the penalty minutes (PIMS) for a player in the database
+ * It assumes that the player has a stats object for the given season. If they do not this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ * 
+ * @param playerId - The ID of the player to increment PIMS for
+ * @param seasonId - The season ID to increment PIMS for
+ * @param penaltyMinutes - The number of penalty minutes to add (default: 2)
+ */
+export async function IncrementPimsForPlayerInDatabase(playerId: string, seasonId: string, penaltyMinutes: number = 2) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.pims': penaltyMinutes
+            }
+        }
+    );
+    
+    // Verify the player was updated
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
+
+/**
+ * This method will decrement the penalty minutes (PIMS) for a player in the database
+ * It assumes that the player has a stats object for the given season. If they do not this will fail.
+ * In the event something goes wrong, it will throw an error and get caught.
+ * No return because all logic based on this result is done in this method.
+ * 
+ * @param playerId - The ID of the player to decrement PIMS for
+ * @param seasonId - The season ID to decrement PIMS for
+ * @param penaltyMinutes - The number of penalty minutes to subtract (default: 2)
+ */
+export async function DecrementPimsForPlayerInDatabase(playerId: string, seasonId: string, penaltyMinutes: number = 2) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.pims': -penaltyMinutes
+            }
+        }
+    );
+    
+    // Verify the player was updated
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
