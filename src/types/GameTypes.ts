@@ -52,14 +52,14 @@ export interface IGameOpponentGoals extends IBaseGameStat {
 
 export interface IGameTeamPenalty extends IBaseGameStat {
     _id: string; // unique penalty ID
-    playerId: string;
+    offender: string;
     type: PenaltyType;
     duration: number; // in minutes
 }
 
 export interface IGameOpponentPenalty extends IBaseGameStat {
     _id: string; // unique penalty ID
-    name: string; // name of player
+    offender: string; // name of player
     type: PenaltyType;
     duration: number; // in minutes
 }
@@ -110,7 +110,7 @@ export interface IAddPenaltyBody {
     minute: number;
     second: number;
     type: PenaltyType;
-    playerId: string; // playerId or "BENCH"
+    offender: string; // playerId or "BENCH"
     duration: number; // in minutes
 }
 
@@ -118,7 +118,7 @@ export interface IAddOpponentPenaltyBody {
     minute: number;
     second: number;
     type: PenaltyType;
-    playerName: string; // opponent player name
+    offender: string; // opponent player name
     duration: number; // in minutes
 }
 

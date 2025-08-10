@@ -16,6 +16,8 @@ import { addGameToPlayers } from './player.service';
 import { addGameToTeam } from './team.service';
 
 export const CreateGame = async (postGame: IGamePostBody) => {
+    console.log(postGame)
+
     // TODO: create game object
     const allPlayerInDatabase = await GetAllPlayersFromDatabase();
     const hydratedGame = await createHydratedGameObject(postGame);
@@ -34,7 +36,7 @@ export const GetAllGames = async (): Promise<IGame[]> => {
     return await GetAllGamesFromDatabase();
 };
 
-export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody) => {
+export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody): Promise<any> => {
     //check game exists
 
     const game = await GetGameById(gameId);
@@ -47,7 +49,7 @@ export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody) => {
     }
 
     // add new goal object to game
-    await AddGoalToGameInDatabase(gameId, addGoal);
+    const newGoal = await AddGoalToGameInDatabase(gameId, addGoal);
 
     // update player stats for goal scorer and assists
     await IncrementGoalsForPlayerInDatabase(addGoal.scoredBy, game.seasonId);
@@ -61,6 +63,8 @@ export const AddGoalToGame = async (gameId: string, addGoal: IAddGoalBody) => {
         await IncrementAssistsForPlayerInDatabase(addGoal.assist2, game.seasonId);
         await IncrementAssistsForTeamInDatabase(game.team.id, addGoal.assist2, game.seasonId);
     }
+
+    return newGoal;
 }
 
 /**
@@ -210,12 +214,12 @@ export const AddPenaltyToGame = async (gameId: string, addPenalty: IAddPenaltyBo
     const newPenalty = await AddPenaltyToGameInDatabase(gameId, addPenalty);
     
     // Update player and team PIMS stats (only if not a bench penalty)
-    if (addPenalty.playerId !== 'BENCH') {
-        // Update player stats
-        await IncrementPimsForPlayerInDatabase(addPenalty.playerId, game.seasonId, addPenalty.duration);
-        
-        // Update team and roster stats
-        await IncrementPimsForTeamInDatabase(game.team.id, addPenalty.playerId, game.seasonId, addPenalty.duration);
+    if (addPenalty.offender !== 'BENCH') {
+        console.log(`Updating PIMS for player: ${addPenalty.offender}, season: ${game.seasonId}, duration: ${addPenalty.duration}`);
+        await IncrementPimsForPlayerInDatabase(addPenalty.offender, game.seasonId, addPenalty.duration);
+        console.log('Player PIMS updated successfully');
+        console.log(`Updating team PIMS for team: ${game.team.id}, player: ${addPenalty.offender}, season: ${game.seasonId}, duration: ${addPenalty.duration}`);
+        await IncrementPimsForTeamInDatabase(game.team.id, addPenalty.offender, game.seasonId, addPenalty.duration);
     }
     
     return newPenalty;
@@ -229,12 +233,12 @@ export const RemovePenaltyFromGame = async (gameId: string, penaltyId: string) =
     const { result, removedPenalty } = await RemovePenaltyFromGameInDatabase(gameId, penaltyId);
     
     // Update player and team PIMS stats (only if not a bench penalty)
-    if (removedPenalty.playerId !== 'BENCH') {
-        // Update player stats
-        await DecrementPimsForPlayerInDatabase(removedPenalty.playerId, game.seasonId, removedPenalty.duration);
-        
-        // Update team and roster stats
-        await DecrementPimsForTeamInDatabase(game.team.id, removedPenalty.playerId, game.seasonId, removedPenalty.duration);
+    if (removedPenalty.offender !== 'BENCH') {
+        console.log(`Decrementing PIMS for player: ${removedPenalty.offender}, season: ${game.seasonId}, duration: ${removedPenalty.duration}`);
+        await DecrementPimsForPlayerInDatabase(removedPenalty.offender, game.seasonId, removedPenalty.duration);
+        console.log('Player PIMS decremented successfully');
+        console.log(`Decrementing team PIMS for team: ${game.team.id}, player: ${removedPenalty.offender}, season: ${game.seasonId}, duration: ${removedPenalty.duration}`);
+        await DecrementPimsForTeamInDatabase(game.team.id, removedPenalty.offender, game.seasonId, removedPenalty.duration);
     }
     
     return { message: 'Penalty removed successfully', removedPenalty };

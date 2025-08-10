@@ -68,10 +68,10 @@ router.patch('/addgoal/:gameid', async (req, res) => {
         // Add service to update player stats based on goal
         // Update create-game to add team stats the same way it does player stats.
         // Update Team Stats
-        const result = await AddGoalToGame(req.params.gameid, req.body);
+        const addedGoal = await AddGoalToGame(req.params.gameid, req.body);
         
         logger.LogRouteFinished('Add Goal to Game');
-        res.status(StatusCodes.CREATED).send();
+        res.status(StatusCodes.CREATED).json(addedGoal);
         return;
     } catch (error) {
         console.log(error);
@@ -356,6 +356,8 @@ router.patch('/removeopponentpenalty/:gameid/:penaltyid', async (req, res) => {
 
 // Validation functions for penalty bodies
 const isValidAddPenaltyBody = (body: any): body is IAddPenaltyBody => {
+    console.log(body)
+
     if (!body || typeof body !== 'object') {
         return false;
     }
@@ -377,12 +379,12 @@ const isValidAddPenaltyBody = (body: any): body is IAddPenaltyBody => {
         return false;
     }
     
-    // playerId can be a valid player ID or "BENCH"
-    if (!body.playerId || (typeof body.playerId !== 'string')) {
+    // offender can be a valid player ID or "BENCH"
+    if (!body.offender || (typeof body.offender !== 'string')) {
         return false;
     }
     
-    if (body.playerId !== 'BENCH' && !isValidPlayerId(body.playerId)) {
+    if (body.offender !== 'BENCH' && !isValidPlayerId(body.offender)) {
         return false;
     }
     
@@ -390,6 +392,8 @@ const isValidAddPenaltyBody = (body: any): body is IAddPenaltyBody => {
 };
 
 const isValidAddOpponentPenaltyBody = (body: any): body is IAddOpponentPenaltyBody => {
+    console.log(body)
+
     if (!body || typeof body !== 'object') {
         return false;
     }
@@ -411,8 +415,8 @@ const isValidAddOpponentPenaltyBody = (body: any): body is IAddOpponentPenaltyBo
         return false;
     }
     
-    // playerName can be a player name or "BENCH"
-    if (!body.playerName || typeof body.playerName !== 'string') {
+    // offender can be a player name or "BENCH"
+    if (!body.offender || typeof body.offender !== 'string') {
         return false;
     }
     

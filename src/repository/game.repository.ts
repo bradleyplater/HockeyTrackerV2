@@ -51,19 +51,22 @@ export async function AddGoalToGameInDatabase(gameId: string, addGoal: IAddGoalB
         periodNumber = 3;
     }
 
+    // Create the goal object that will be added
+    const newGoal = {
+        _id: generateIdWithPrefix('GOL'),
+        scoredBy: addGoal.scoredBy,
+        assist1: addGoal.assist1,
+        assist2: addGoal.assist2,
+        minute: addGoal.minute,
+        second: addGoal.second,
+        type: addGoal.type
+    };
+
     const result = await collections.game?.updateOne(
         { _id: gameId },
         {
             $push: {
-                "team.goals": {
-                    _id: generateIdWithPrefix('GOL'),
-                    scoredBy: addGoal.scoredBy,
-                    assist1: addGoal.assist1,
-                    assist2: addGoal.assist2,
-                    minute: addGoal.minute,
-                    second: addGoal.second,
-                    type: addGoal.type
-                }
+                "team.goals": newGoal
             },
             $inc: {
                 "score.team": 1,
@@ -91,7 +94,7 @@ export async function AddGoalToGameInDatabase(gameId: string, addGoal: IAddGoalB
         throw new Error('Failed to add goal to game');
     }
 
-    return result;
+    return newGoal;
 }
 
 export async function AddOpponentGoalToGameInDatabase(gameId: string, addGoal: IAddOpponentGoalBody) {
@@ -271,7 +274,7 @@ export async function AddPenaltyToGameInDatabase(gameId: string, addPenalty: IAd
     // Create the penalty object that will be added
     const newPenalty = {
         _id: generateIdWithPrefix('PEN'),
-        playerId: addPenalty.playerId,
+        offender: addPenalty.offender,
         minute: addPenalty.minute,
         second: addPenalty.second,
         type: addPenalty.type,
@@ -285,12 +288,12 @@ export async function AddPenaltyToGameInDatabase(gameId: string, addPenalty: IAd
                 "team.penalties": newPenalty
             },
             $inc: {
-                ...(addPenalty.playerId !== 'BENCH' ? { [`team.roster.$[penaltyPlayer].stats.pims`]: addPenalty.duration } : {})
+                ...(addPenalty.offender !== 'BENCH' ? { [`team.roster.$[penaltyPlayer].stats.pims`]: addPenalty.duration } : {})
             }
         },
         {
             arrayFilters: [
-                ...(addPenalty.playerId !== 'BENCH' ? [{ "penaltyPlayer.playerId": addPenalty.playerId }] : [])
+                ...(addPenalty.offender !== 'BENCH' ? [{ "penaltyPlayer.playerId": addPenalty.offender }] : [])
             ]
         }
     );
@@ -328,12 +331,12 @@ export async function RemovePenaltyFromGameInDatabase(gameId: string, penaltyId:
                 "team.penalties": { _id: penaltyId }
             },
             $inc: {
-                ...(penaltyToRemove.playerId !== 'BENCH' ? { [`team.roster.$[penaltyPlayer].stats.pims`]: -penaltyToRemove.duration } : {})
+                ...(penaltyToRemove.offender !== 'BENCH' ? { [`team.roster.$[penaltyPlayer].stats.pims`]: -penaltyToRemove.duration } : {})
             }
         },
         {
             arrayFilters: [
-                ...(penaltyToRemove.playerId !== 'BENCH' ? [{ "penaltyPlayer.playerId": penaltyToRemove.playerId }] : [])
+                ...(penaltyToRemove.offender !== 'BENCH' ? [{ "penaltyPlayer.playerId": penaltyToRemove.offender }] : [])
             ]
         }
     );
@@ -353,7 +356,7 @@ export async function AddOpponentPenaltyToGameInDatabase(gameId: string, addPena
     // Create the penalty object that will be added
     const newPenalty = {
         _id: generateIdWithPrefix('OPP'),
-        name: addPenalty.playerName,
+        offender: addPenalty.offender,
         minute: addPenalty.minute,
         second: addPenalty.second,
         type: addPenalty.type,

@@ -187,11 +187,14 @@ export async function AddStatsObjectToPlayersInTeamInDatabase(
     teamId: string,
     seasonId: string
 ) {
+    // Only add stats to players who don't already have stats for this season
     await collections.team?.updateOne(
-        { _id: teamId },
+        { 
+            _id: teamId
+        },
         {
             $push: {
-                'players.$[].stats': {
+                'players.$[player].stats': {
                     seasonId: seasonId,
                     gamesPlayed: 0,
                     goals: 0,
@@ -199,6 +202,11 @@ export async function AddStatsObjectToPlayersInTeamInDatabase(
                     pims: 0
                 }
             }
+        },
+        {
+            arrayFilters: [
+                { 'player.stats.seasonId': { $ne: seasonId } }
+            ]
         }
     );
             
@@ -206,7 +214,7 @@ export async function AddStatsObjectToPlayersInTeamInDatabase(
     // Verify the update worked
     const updatedTeam = await collections.team?.findOne({
         _id: teamId,
-        'stats.seasonId': seasonId
+        'players.stats.seasonId': seasonId
     });
 
     if (!updatedTeam) {
