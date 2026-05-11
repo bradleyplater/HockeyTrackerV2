@@ -84,7 +84,7 @@ describe('Player Integration Tests', () => {
             const response = await request(app)
                 .post('/api/v2/player')
                 .set('x-api-key', testApiKey)
-                .send({ firstName: 'Bradley', surname: 'Doe' });
+                .send({ firstName: 'Bradley', surname: 'Doe', position: 'Forward' });
 
             expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
         });
@@ -99,6 +99,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             });
@@ -106,7 +107,7 @@ describe('Player Integration Tests', () => {
             const response = await request(app)
                 .post('/api/v2/player')
                 .set('x-api-key', testApiKey)
-                .send({ firstName: 'Bradley', surname: 'Doe' });
+                .send({ firstName: 'Bradley', surname: 'Doe', position: 'Forward' });
 
             expect(response.status).toBe(StatusCodes.CREATED);
             expect(response.body.firstName).toBe('Bradley');
@@ -183,6 +184,7 @@ describe('Player Integration Tests', () => {
                     _id: 'PLR123456',
                     firstName: 'Bradley',
                     surname: 'Doe',
+                    position: 'Forward',
                     teams: [],
                     stats: [],
                 },
@@ -190,6 +192,7 @@ describe('Player Integration Tests', () => {
                     _id: 'PLR654321',
                     firstName: 'Doe',
                     surname: 'Bradley',
+                    position: 'Defense',
                     teams: [],
                     stats: [],
                 },
@@ -205,6 +208,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             });
@@ -212,6 +216,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR654321',
                 firstName: 'Doe',
                 surname: 'Bradley',
+                position: 'Defense',
                 teams: [],
                 stats: [],
             });
@@ -330,6 +335,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             });
@@ -344,6 +350,7 @@ describe('Player Integration Tests', () => {
                 _id: 'PLR123456',
                 firstName: 'Bradley',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             });

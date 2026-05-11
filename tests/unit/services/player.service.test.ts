@@ -10,26 +10,30 @@ describe('PlayerService', () => {
         {
             firstName: 'John',
             surname: 'Doe',
+            position: 'Forward',
         },
         {
             firstName: 'Derek',
             surname: 'Smith',
+            position: 'Defense',
         },
         {
             firstName: 'Jane',
             surname: 'Doe',
+            position: 'Goalie',
         },
     ];
 
     it.each(testCases)(
-        'Should call InsertPlayerToDatabase with firstname: $firstName, surname: $surname',
-        async ({ firstName, surname }) => {
+        'Should call InsertPlayerToDatabase with firstname: $firstName, surname: $surname, position: $position',
+        async ({ firstName, surname, position }) => {
             const insertPlayerToDatabaseSpy = jest
                 .spyOn(PlayerRepository, 'InsertPlayerToDatabase')
                 .mockResolvedValue({
                     _id: 'PLR123456',
                     firstName,
                     surname,
+                    position,
                     teams: [],
                     stats: [],
                 });
@@ -42,11 +46,12 @@ describe('PlayerService', () => {
                 _id: 'PLR123456',
                 firstName,
                 surname,
+                position,
                 teams: [],
                 stats: [],
             };
 
-            await addPlayerToDatabase(firstName, surname);
+            await addPlayerToDatabase(firstName, surname, position);
 
             expect(insertPlayerToDatabaseSpy).toHaveBeenCalledWith(
                 expectedResult
@@ -66,7 +71,7 @@ describe('PlayerService', () => {
             'PLR123456'
         );
 
-        await expect(addPlayerToDatabase('John', 'Doe')).rejects.toThrow(
+        await expect(addPlayerToDatabase('John', 'Doe', 'Forward')).rejects.toThrow(
             testError
         );
     });
@@ -79,6 +84,7 @@ describe('PlayerService', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             };

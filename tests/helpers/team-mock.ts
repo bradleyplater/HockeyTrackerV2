@@ -15,4 +15,5 @@ export const getBasicTeamMock = (): ITeam => ({
             stats: [],
         },
     ],
+    stats: [],
 });

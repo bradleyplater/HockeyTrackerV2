@@ -32,6 +32,7 @@ export const generateGameMock = (): IGame => {
 
     const mockTeamGoals: IGameTeamGoals[] = [
         {
+            _id: 'goal-1',
             minute: 4,
             second: 12,
             scoredBy: 'player-1',
@@ -40,6 +41,7 @@ export const generateGameMock = (): IGame => {
             type: 'EVEN',
         },
         {
+            _id: 'goal-2',
             minute: 15,
             second: 33,
             scoredBy: 'player-2',
@@ -51,16 +53,18 @@ export const generateGameMock = (): IGame => {
 
     const mockTeamPenalties: IGameTeamPenalty[] = [
         {
+            _id: 'penalty-1',
             minute: 5,
             second: 0,
-            playerId: 'player-1',
+            offender: 'player-1',
             type: 'HOOK',
             duration: 2,
         },
         {
+            _id: 'penalty-2',
             minute: 11,
             second: 45,
-            playerId: 'player-2',
+            offender: 'player-2',
             type: 'SLASH',
             duration: 2,
         },
@@ -68,31 +72,35 @@ export const generateGameMock = (): IGame => {
 
     const mockOpponentGoals: IGameOpponentGoals[] = [
         {
+            _id: 'opp-goal-1',
             minute: 9,
             second: 20,
-            name: 'Opponent Player 1',
+            scoredBy: 'Opponent Player 1',
             type: 'SH',
         },
         {
+            _id: 'opp-goal-2',
             minute: 17,
             second: 5,
-            name: 'Opponent Player 2',
+            scoredBy: 'Opponent Player 2',
             type: 'EVEN',
         },
     ];
 
     const mockOpponentPenalties: IGameOpponentPenalty[] = [
         {
+            _id: 'opp-penalty-1',
             minute: 6,
             second: 30,
-            name: 'Opponent Player 1',
+            offender: 'Opponent Player 1',
             type: 'TRIP',
             duration: 2,
         },
         {
+            _id: 'opp-penalty-2',
             minute: 13,
             second: 10,
-            name: 'Opponent Player 2',
+            offender: 'Opponent Player 2',
             type: 'ROUGH',
             duration: 2,
         },
@@ -113,6 +121,9 @@ export const generateGameMock = (): IGame => {
     return {
         _id: 'game-1',
         date: new Date('2025-06-15T12:12:00.029Z'),
+        seasonId: 'SSN100',
+        type: 'CHALLENGE',
+        location: 'HOME',
         team: {
             id: 'team-1',
             roster: mockPlayers,
@@ -125,6 +136,9 @@ export const generateGameMock = (): IGame => {
             penalties: mockOpponentPenalties,
         },
         score: mockScore,
+        manOfTheMatchPlayerId: 'player-1',
+        warriorOfTheGamePlayerId: 'player-2',
+        netminderPlayerId: 'player-1',
     };
 };
 

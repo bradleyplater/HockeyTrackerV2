@@ -1,5 +1,6 @@
 import { generateIdWithPrefix } from '../helpers/id-helper';
-import { AddGoalToGameInDatabase, AddOpponentGoalToGameInDatabase, AddPenaltyToGameInDatabase, AddOpponentPenaltyToGameInDatabase, GetAllGamesFromDatabase, GetGameById, InsertGameToDatabase, RemoveGoalFromGameInDatabase, RemoveOpponentGoalFromGameInDatabase, RemovePenaltyFromGameInDatabase, RemoveOpponentPenaltyFromGameInDatabase } from '../repository/game.repository';
+import { PlayerErrors } from '../helpers/error-helper';
+import { AddGoalToGameInDatabase, AddOpponentGoalToGameInDatabase, AddPenaltyToGameInDatabase, AddOpponentPenaltyToGameInDatabase, GetAllGamesFromDatabase, GetGameById, InsertGameToDatabase, RemoveGoalFromGameInDatabase, RemoveOpponentGoalFromGameInDatabase, RemovePenaltyFromGameInDatabase, RemoveOpponentPenaltyFromGameInDatabase, UpdateGameAwardsInDatabase, UpdateGameNetminderInDatabase } from '../repository/game.repository';
 import {
     DecrementAssistsForPlayerInDatabase,
     DecrementGoalsForPlayerInDatabase,
@@ -9,9 +10,13 @@ import {
     IncrementAssistsForPlayerInDatabase,
     IncrementGoalsForPlayerInDatabase,
     IncrementPimsForPlayerInDatabase,
+    IncrementManOfTheMatchForPlayerInDatabase,
+    DecrementManOfTheMatchForPlayerInDatabase,
+    IncrementWarriorOfTheGameForPlayerInDatabase,
+    DecrementWarriorOfTheGameForPlayerInDatabase,
 } from '../repository/player.repository';
-import { DecrementAssistsForTeamInDatabase, DecrementGoalsForTeamInDatabase, DecrementPimsForTeamInDatabase, IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase, IncrementPimsForTeamInDatabase } from '../repository/team.repository';
-import { IAddGoalBody, IAddOpponentGoalBody, IAddPenaltyBody, IAddOpponentPenaltyBody, IGame, IGamePlayer, IGamePostBody } from '../types/GameTypes';
+import { DecrementAssistsForTeamInDatabase, DecrementGoalsForTeamInDatabase, DecrementPimsForTeamInDatabase, IncrementAssistsForTeamInDatabase, IncrementGoalsForTeamInDatabase, IncrementPimsForTeamInDatabase, IncrementManOfTheMatchForTeamInDatabase, DecrementManOfTheMatchForTeamInDatabase, IncrementWarriorOfTheGameForTeamInDatabase, DecrementWarriorOfTheGameForTeamInDatabase } from '../repository/team.repository';
+import { IAddGoalBody, IAddOpponentGoalBody, IAddPenaltyBody, IAddOpponentPenaltyBody, IGame, IGamePlayer, IGamePostBody, ISetGameAwardsBody, ISetGameNetminderBody } from '../types/GameTypes';
 import { addGameToPlayers } from './player.service';
 import { addGameToTeam } from './team.service';
 
@@ -103,6 +108,94 @@ export const RemoveGoalFromGame = async (gameId: string, goalId: string): Promis
     return game;
 }
 
+export const SetGameAwards = async (gameId: string, awards: ISetGameAwardsBody): Promise<IGame> => {
+    const game = await GetGameById(gameId);
+
+    const manOfTheMatchPlayerId = awards.manOfTheMatchPlayerId ?? null;
+    const warriorOfTheGamePlayerId = awards.warriorOfTheGamePlayerId ?? null;
+
+    if (!manOfTheMatchPlayerId && !warriorOfTheGamePlayerId) {
+        return game;
+    }
+
+    const rosterPlayerIds = new Set(game.team.roster.map(player => player.playerId));
+
+    const playerIdsToValidate: string[] = [];
+
+    if (manOfTheMatchPlayerId) {
+        if (!rosterPlayerIds.has(manOfTheMatchPlayerId)) {
+            throw PlayerErrors.PLAYER_NOT_ON_TEAM;
+        }
+        playerIdsToValidate.push(manOfTheMatchPlayerId);
+    }
+
+    if (warriorOfTheGamePlayerId) {
+        if (!rosterPlayerIds.has(warriorOfTheGamePlayerId)) {
+            throw PlayerErrors.PLAYER_NOT_ON_TEAM;
+        }
+        playerIdsToValidate.push(warriorOfTheGamePlayerId);
+    }
+
+    const uniquePlayerIds = Array.from(new Set(playerIdsToValidate));
+    await Promise.all(uniquePlayerIds.map(id => GetPlayerByIdFromDatabase(id)));
+
+    const previousManOfTheMatch = game.manOfTheMatchPlayerId ?? null;
+    const previousWarriorOfTheGame = game.warriorOfTheGamePlayerId ?? null;
+
+    await UpdateGameAwardsInDatabase(gameId, manOfTheMatchPlayerId, warriorOfTheGamePlayerId);
+
+    const teamId = game.team.id;
+    const seasonId = game.seasonId;
+
+    if (previousManOfTheMatch && previousManOfTheMatch !== manOfTheMatchPlayerId) {
+        await DecrementManOfTheMatchForPlayerInDatabase(previousManOfTheMatch, seasonId);
+        await DecrementManOfTheMatchForTeamInDatabase(teamId, previousManOfTheMatch, seasonId);
+    }
+
+    if (previousWarriorOfTheGame && previousWarriorOfTheGame !== warriorOfTheGamePlayerId) {
+        await DecrementWarriorOfTheGameForPlayerInDatabase(previousWarriorOfTheGame, seasonId);
+        await DecrementWarriorOfTheGameForTeamInDatabase(teamId, previousWarriorOfTheGame, seasonId);
+    }
+
+    if (manOfTheMatchPlayerId && previousManOfTheMatch !== manOfTheMatchPlayerId) {
+        await IncrementManOfTheMatchForPlayerInDatabase(manOfTheMatchPlayerId, seasonId);
+        await IncrementManOfTheMatchForTeamInDatabase(teamId, manOfTheMatchPlayerId, seasonId);
+    }
+
+    if (warriorOfTheGamePlayerId && previousWarriorOfTheGame !== warriorOfTheGamePlayerId) {
+        await IncrementWarriorOfTheGameForPlayerInDatabase(warriorOfTheGamePlayerId, seasonId);
+        await IncrementWarriorOfTheGameForTeamInDatabase(teamId, warriorOfTheGamePlayerId, seasonId);
+    }
+
+    const updatedGame = await GetGameById(gameId);
+
+    return updatedGame;
+}
+
+export const SetGameNetminder = async (
+    gameId: string,
+    netminder: ISetGameNetminderBody
+): Promise<IGame> => {
+    const game = await GetGameById(gameId);
+
+    const netminderPlayerId = netminder.netminderPlayerId;
+
+    // Validate that the player is on the roster for this game
+    const rosterPlayerIds = new Set(
+        game.team.roster.map((player) => player.playerId)
+    );
+
+    if (!rosterPlayerIds.has(netminderPlayerId)) {
+        throw PlayerErrors.PLAYER_NOT_ON_TEAM;
+    }
+
+    await UpdateGameNetminderInDatabase(gameId, netminderPlayerId);
+
+    const updatedGame = await GetGameById(gameId);
+
+    return updatedGame;
+};
+
 const createHydratedGameObject = async (
     postGame: IGamePostBody
 ): Promise<IGame> => {
@@ -111,6 +204,7 @@ const createHydratedGameObject = async (
         date: new Date(postGame.date),
         seasonId: postGame.seasonId,
         type: postGame.type,
+        location: postGame.location,
         opponentTeam: {
             name: postGame.opponentName,
             goals: [],

@@ -24,6 +24,7 @@ describe('TeamService', () => {
             _id: playerIdOverride ?? 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            position: 'Forward',
             teams: teamsOverride ?? [],
             stats: [],
         };
@@ -51,6 +52,7 @@ describe('TeamService', () => {
                         _id: 'TM123456',
                         name,
                         players: [],
+                        stats: [],
                     });
 
                 jest.spyOn(IdHelper, 'generateIdWithPrefix').mockReturnValue(
@@ -61,6 +63,7 @@ describe('TeamService', () => {
                     _id: 'TM123456',
                     name,
                     players: [],
+                    stats: [],
                 };
 
                 await addTeamToDatabase(name);
@@ -181,6 +184,7 @@ describe('TeamService', () => {
                         stats: [],
                     },
                 ],
+                stats: [],
             });
 
             jest.spyOn(
@@ -195,7 +199,7 @@ describe('TeamService', () => {
 
             jest.spyOn(
                 TeamRepository,
-                'AddPlayerToTeamInDatabase'
+                'AddPlayerToTeamByIdFromDatabase'
             ).mockResolvedValue();
 
             const expectedResult = {
@@ -213,6 +217,7 @@ describe('TeamService', () => {
                         stats: []
                     },
                 ],
+                stats: [],
             };
 
             expect(await addPlayerToTeam('TM123456', 'PLR123456', 13)).toEqual(
@@ -283,6 +288,7 @@ describe('TeamService', () => {
                         stats: [],
                     },
                 ],
+                stats: [],
             });
 
             jest.spyOn(

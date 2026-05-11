@@ -33,6 +33,7 @@ describe('InsertPlayerToDatabase', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            position: 'Forward',
             teams: [],
             stats: [],
         });
@@ -55,6 +56,7 @@ describe('InsertPlayerToDatabase', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             })
@@ -78,6 +80,7 @@ describe('InsertPlayerToDatabase', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             })
@@ -228,6 +231,7 @@ describe('UpdatePlayerById Details', () => {
             _id: 'PLR123456',
             firstName: 'John',
             surname: 'Doe',
+            position: 'Forward',
             teams: [],
             stats: [],
         });
@@ -239,6 +243,7 @@ describe('UpdatePlayerById Details', () => {
                 $set: {
                     firstName: 'John',
                     surname: 'Doe',
+                    position: 'Forward',
                 },
             }
         );
@@ -254,6 +259,7 @@ describe('UpdatePlayerById Details', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             })
@@ -270,6 +276,7 @@ describe('UpdatePlayerById Details', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             })
@@ -286,6 +293,7 @@ describe('UpdatePlayerById Details', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             })
@@ -302,6 +310,7 @@ describe('UpdatePlayerById Details', () => {
                 _id: 'PLR123456',
                 firstName: 'John',
                 surname: 'Doe',
+                position: 'Forward',
                 teams: [],
                 stats: [],
             })

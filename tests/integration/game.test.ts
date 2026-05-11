@@ -19,6 +19,8 @@ describe('Game Integration Tests', () => {
             team: 'TM123456',
             teamRoster: ['PLR123456', 'PLR123456'],
             seasonId: 'SSN2324',
+            type: 'CHALLENGE',
+            location: 'HOME',
         };
 
         const badPostBodyCases = [

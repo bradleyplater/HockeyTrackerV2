@@ -7,6 +7,7 @@ import {
     addPlayerToTeam,
     addTeamToDatabase,
     removePlayerFromTeam,
+    updatePlayerNumber,
 } from '../services/team.service';
 import { GetAllTeamsFromDatabase } from '../repository/team.repository';
 import { commonErrorHandler } from '../helpers/error-helper';
@@ -111,6 +112,34 @@ router.patch('/removeplayer/:teamid', async (req, res) => {
     }
 });
 
+router.patch('/updateplayer/:teamid/number', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Update Player Number in Team');
+
+        const teamId = req.params.teamid;
+        const body = req.body as { playerId: string; number: number };
+
+        if (!ValidateUpdatePlayerNumberBody(body)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+
+        const team = await updatePlayerNumber(
+            teamId,
+            body.playerId,
+            body.number
+        );
+
+        logger.LogRouteFinished('Update Player Number in Team');
+        res.status(StatusCodes.OK).json(team).send();
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Update Player Number in Team');
+        commonErrorHandler(error, res);
+    }
+});
+
 function ValidatePostTeamBody(team: { name: string }): boolean {
     return isValidTeamName(team.name);
 }
@@ -123,6 +152,18 @@ function ValidateAddPlayerToTeamBody(player: {
         isValidPlayerId(player.playerId) &&
         player.number != null &&
         player.number != undefined
+    );
+}
+
+function ValidateUpdatePlayerNumberBody(body: {
+    playerId: string;
+    number: number;
+}): boolean {
+    return (
+        isValidPlayerId(body.playerId) &&
+        body.number != null &&
+        body.number != undefined &&
+        typeof body.number === 'number'
     );
 }
 

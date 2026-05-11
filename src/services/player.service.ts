@@ -8,12 +8,14 @@ import {
 
 export const addPlayerToDatabase = async (
     firstName: string,
-    surname: string
+    surname: string,
+    position: string
 ) => {
     const newPlayer: IPlayer = {
         _id: generateIdWithPrefix('PLR'),
         firstName,
         surname,
+        position,
         teams: [],
         stats: [],
     };

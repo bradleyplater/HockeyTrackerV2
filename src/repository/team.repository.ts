@@ -9,6 +9,8 @@ export interface ITeamStats {
     goals: number;
     assists: number;
     pims: number;
+    manOfTheMatch: number;
+    warriorOfTheGame: number;
 }
 
 /**
@@ -135,7 +137,30 @@ export async function RemovePlayerFromTeamInDatabase(
 }
 
 /**
- * This method will add a stats object to a team in the database
+ * Updates a player's number within a team in the database
+ * 
+ * @param teamId ID of the team to update
+ * @param playerId ID of the player whose number to update
+ * @param newNumber The new number for the player
+ * @returns Promise<void>
+ */
+export async function UpdatePlayerNumberInTeamInDatabase(
+    teamId: string,
+    playerId: string,
+    newNumber: number
+) {
+    const updateResult = await collections.team?.updateOne(
+        { _id: teamId, 'players.playerId': playerId },
+        { $set: { 'players.$.number': newNumber } }
+    );
+
+    if (!updateResult || updateResult.matchedCount === 0) {
+        throw TeamErrors.TEAM_NOT_FOUND;
+    }
+}
+
+/**
+ * This method will add a stats object to players in a team in the database
  * It assumes that the team does NOT have a stats object. If they do this will fail.
  * In the event something goes wrong, it will throw an error and get caught.
  * No return because all logic based on this result is done in this method.
@@ -156,7 +181,9 @@ export async function AddStatsObjectToTeamInDatabase(
                     gamesPlayed: 0,
                     goals: 0,
                     assists: 0,
-                    pims: 0
+                    pims: 0,
+                    manOfTheMatch: 0,
+                    warriorOfTheGame: 0
                 }
             }
         }
@@ -199,7 +226,9 @@ export async function AddStatsObjectToPlayersInTeamInDatabase(
                     gamesPlayed: 0,
                     goals: 0,
                     assists: 0,
-                    pims: 0
+                    pims: 0,
+                    manOfTheMatch: 0,
+                    warriorOfTheGame: 0
                 }
             }
         },
@@ -567,6 +596,158 @@ export async function DecrementPimsForTeamInDatabase(teamId: string, playerId: s
         {
             $inc: {
                 'players.$[player].stats.$[stat].pims': -penaltyMinutes
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function IncrementManOfTheMatchForTeamInDatabase(teamId: string, playerId: string, seasonId: string) {
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.manOfTheMatch': 1
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].manOfTheMatch': 1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function DecrementManOfTheMatchForTeamInDatabase(teamId: string, playerId: string, seasonId: string) {
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.manOfTheMatch': -1
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].manOfTheMatch': -1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function IncrementWarriorOfTheGameForTeamInDatabase(teamId: string, playerId: string, seasonId: string) {
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.warriorOfTheGame': 1
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].warriorOfTheGame': 1
+            }
+        },
+        {
+            arrayFilters: [
+                { 'player.playerId': playerId },
+                { 'stat.seasonId': seasonId }
+            ]
+        }
+    );
+    
+    if (!playerUpdateResult || playerUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function DecrementWarriorOfTheGameForTeamInDatabase(teamId: string, playerId: string, seasonId: string) {
+    const teamUpdateResult = await collections.team?.updateOne(
+        { _id: teamId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.warriorOfTheGame': -1
+            }
+        }
+    );
+    
+    if (!teamUpdateResult || teamUpdateResult.modifiedCount !== 1) {
+        throw TeamErrors.STATS_NOT_UPDATED;
+    }
+
+    const playerUpdateResult = await collections.team?.updateOne(
+        { 
+            _id: teamId,
+            'players.playerId': playerId, 
+            'players.stats.seasonId': seasonId 
+        },
+        {
+            $inc: {
+                'players.$[player].stats.$[stat].warriorOfTheGame': -1
             }
         },
         {

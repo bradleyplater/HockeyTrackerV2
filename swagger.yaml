@@ -645,6 +645,70 @@ paths:
                 '500':
                     description: Server error
 
+    /game/awards/{gameId}:
+        patch:
+            summary: Set game awards
+            description: Sets the Man of the Match and Warrior of the Game for a game
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SetGameAwardsBody'
+            responses:
+                '200':
+                    description: Awards set successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Game'
+                '400':
+                    description: Invalid request body or game not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
+    /game/netminder/{gameId}:
+        patch:
+            summary: Set game netminder
+            description: Sets the player who played in goal for the game
+            parameters:
+                - name: gameId
+                  in: path
+                  required: true
+                  description: Unique Game ID
+                  schema:
+                      type: string
+                      example: GME123456
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SetGameNetminderBody'
+            responses:
+                '200':
+                    description: Netminder set successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Game'
+                '400':
+                    description: Invalid request body or game not found
+                '403':
+                    description: Unauthorised
+                '500':
+                    description: Server error
+
 components:
     schemas:
         Season:
@@ -795,6 +859,25 @@ components:
                 - opponentName
                 - seasonId
 
+        SetGameAwardsBody:
+            type: object
+            properties:
+                manOfTheMatchPlayerId:
+                    type: string
+                    example: 'PLR123456'
+                warriorOfTheGamePlayerId:
+                    type: string
+                    example: 'PLR789012'
+
+        SetGameNetminderBody:
+            type: object
+            properties:
+                netminderPlayerId:
+                    type: string
+                    example: 'PLR123456'
+            required:
+                - netminderPlayerId
+
         Game:
             type: object
             properties:
@@ -811,6 +894,15 @@ components:
                     $ref: '#/components/schemas/OpponentGameTeam'
                 score:
                     $ref: '#/components/schemas/GameScore'
+                manOfTheMatchPlayerId:
+                    type: string
+                    example: 'PLR123456'
+                warriorOfTheGamePlayerId:
+                    type: string
+                    example: 'PLR789012'
+                netminderPlayerId:
+                    type: string
+                    example: 'PLR456789'
             required:
                 - _id
                 - date

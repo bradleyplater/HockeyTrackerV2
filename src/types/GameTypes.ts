@@ -6,6 +6,10 @@ export interface IGame {
     opponentTeam: IOpponentGameTeam; // create type
     score: IGameScore; // create type
     type: GameType;
+    location: LocationType;
+    manOfTheMatchPlayerId?: string;
+    warriorOfTheGamePlayerId?: string;
+    netminderPlayerId?: string;
 }
 
 /**
@@ -88,6 +92,7 @@ export interface IGamePostBody {
     opponentName: string;
     seasonId: string;
     type: GameType;
+    location: LocationType;
 }
 
 export interface IAddGoalBody {
@@ -122,8 +127,18 @@ export interface IAddOpponentPenaltyBody {
     duration: number; // in minutes
 }
 
+export interface ISetGameAwardsBody {
+    manOfTheMatchPlayerId?: string;
+    warriorOfTheGamePlayerId?: string;
+}
+
+export interface ISetGameNetminderBody {
+    netminderPlayerId: string;
+}
+
 type GoalTypes = 'EVEN' | 'SH' | 'PP';
 type GameType = 'CHALLENGE' | 'LLHIC' | 'BOTBC';
+type LocationType = 'HOME' | 'AWAY';
 
 export type PenaltyType =
     | 'ABUSE' // Abuse of officials

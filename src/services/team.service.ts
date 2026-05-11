@@ -2,8 +2,10 @@ import { PlayerErrors, TeamErrors } from '../helpers/error-helper';
 import { generateIdWithPrefix } from '../helpers/id-helper';
 import {
     AddTeamToPlayerByIdFromDatabase,
+    GetAllPlayersFromDatabase,
     GetPlayerByIdFromDatabase,
     RemoveTeamFromPlayerInDatabase,
+    UpdatePlayerNumberForTeamInDatabase,
 } from '../repository/player.repository';
 import {
     AddPlayerToTeamByIdFromDatabase,
@@ -16,6 +18,7 @@ import {
     InsertTeamToDatabase,
     ITeam,
     RemovePlayerFromTeamInDatabase,
+    UpdatePlayerNumberInTeamInDatabase,
 } from '../repository/team.repository';
 
 export const addTeamToDatabase = async (name: string) => {
@@ -92,6 +95,41 @@ export const removePlayerFromTeam = async (
 
     await RemovePlayerFromTeamInDatabase(playerId, teamId);
     await RemoveTeamFromPlayerInDatabase(teamId, playerId);
+};
+
+/**
+ * Updates a player's number for a specific team
+ * @param teamId The id of the team to update the player's number for
+ * @param playerId The id of the player to update the number for
+ * @param newNumber The new number for the player
+ * @returns The updated team
+ */
+export const updatePlayerNumber = async (
+    teamId: string,
+    playerId: string,
+    newNumber: number
+): Promise<ITeam> => {
+    const team = await GetTeamByIdFromDatabase(teamId);
+
+    const player = await GetPlayerByIdFromDatabase(playerId);
+
+    if (!playerExistsOnTeam(team, player._id)) {
+        throw PlayerErrors.PLAYER_NOT_ON_TEAM;
+    }
+
+    const numberAlreadyInUse = team.players.some(
+        (p) => p.number === newNumber && p.playerId !== playerId
+    );
+
+    if (numberAlreadyInUse) {
+        throw TeamErrors.PLAYER_NUMBER_IN_USE;
+    }
+
+    await UpdatePlayerNumberInTeamInDatabase(teamId, playerId, newNumber);
+    await UpdatePlayerNumberForTeamInDatabase(playerId, teamId, newNumber);
+
+    // Refresh team object to return updated version
+    return await GetTeamByIdFromDatabase(teamId);
 };
 
 export const addGameToTeam = async (teamId: string, roster: string[], seasonId: string) => {

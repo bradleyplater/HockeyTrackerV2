@@ -1,10 +1,10 @@
 import express from 'express';
 import { ApiKeyValidation } from '../middleware/authentication';
 import * as logger from '../helpers/logger';
-import { AddGoalToGame, AddOpponentGoalToGame, AddPenaltyToGame, AddOpponentPenaltyToGame, CreateGame, GetAllGames, RemoveGoalFromGame, RemoveOpponentGoalFromGame, RemovePenaltyFromGame, RemoveOpponentPenaltyFromGame } from '../services/game.service';
+import { AddGoalToGame, AddOpponentGoalToGame, AddPenaltyToGame, AddOpponentPenaltyToGame, CreateGame, GetAllGames, RemoveGoalFromGame, RemoveOpponentGoalFromGame, RemovePenaltyFromGame, RemoveOpponentPenaltyFromGame, SetGameAwards, SetGameNetminder } from '../services/game.service';
 import { StatusCodes } from 'http-status-codes';
 import { commonErrorHandler } from '../helpers/error-helper';
-import { IAddGoalBody, IAddOpponentGoalBody, IAddPenaltyBody, IAddOpponentPenaltyBody, IGamePostBody } from '../types/GameTypes';
+import { IAddGoalBody, IAddOpponentGoalBody, IAddPenaltyBody, IAddOpponentPenaltyBody, IGamePostBody, ISetGameAwardsBody, ISetGameNetminderBody } from '../types/GameTypes';
 import {
     isValidName,
     isValidPlayerId,
@@ -91,6 +91,30 @@ router.patch('/removegoal/:gameid/:goalid', async (req, res) => {
     } catch (error) {
         console.log(error);
         logger.LogRouteUnsuccessfulFinished('Remove Goal to Game');
+        commonErrorHandler(error, res);
+    }
+});
+
+router.patch('/awards/:gameid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Set Game Awards');
+
+        const gameId = req.params.gameid;
+        const body: ISetGameAwardsBody = req.body;
+
+        if (!ValidateSetGameAwardsBody(body)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+
+        const updatedGame = await SetGameAwards(gameId, body);
+
+        logger.LogRouteFinished('Set Game Awards');
+        res.status(StatusCodes.OK).json(updatedGame);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Set Game Awards');
         commonErrorHandler(error, res);
     }
 });
@@ -221,6 +245,68 @@ const ValidateAddGoalToGameBody = (body: IAddGoalBody): boolean => {
     }
 
     return true;
+}
+
+router.patch('/netminder/:gameid', async (req, res) => {
+    try {
+        logger.LogRouteStarted('Set Game Netminder');
+        const gameId = req.params.gameid;
+        const body: ISetGameNetminderBody = req.body;
+
+        if (!ValidateSetGameNetminderBody(body)) {
+            logger.LogBadRequest('Invalid Body');
+            res.status(StatusCodes.BAD_REQUEST).send();
+            return;
+        }
+
+        const updatedGame = await SetGameNetminder(gameId, body);
+
+        logger.LogRouteFinished('Set Game Netminder');
+        res.status(StatusCodes.OK).json(updatedGame);
+    } catch (error) {
+        console.log(error);
+        logger.LogRouteUnsuccessfulFinished('Set Game Netminder');
+        commonErrorHandler(error, res);
+    }
+});
+
+const ValidateSetGameAwardsBody = (body: ISetGameAwardsBody): boolean => {
+    if (!body || typeof body !== 'object') {
+        return false;
+    }
+
+    const hasManOfTheMatch = typeof body.manOfTheMatchPlayerId === 'string' && body.manOfTheMatchPlayerId.trim() !== '';
+    const hasWarriorOfTheGame = typeof body.warriorOfTheGamePlayerId === 'string' && body.warriorOfTheGamePlayerId.trim() !== '';
+
+    if (!hasManOfTheMatch && !hasWarriorOfTheGame) {
+        return false;
+    }
+
+    if (body.manOfTheMatchPlayerId && !isValidPlayerId(body.manOfTheMatchPlayerId)) {
+        return false;
+    }
+
+    if (body.warriorOfTheGamePlayerId && !isValidPlayerId(body.warriorOfTheGamePlayerId)) {
+        return false;
+    }
+
+    return true;
+};
+
+const ValidateSetGameNetminderBody = (body: ISetGameNetminderBody): boolean => {
+    if (!body || typeof body !== 'object') {
+        return false;
+    }
+
+    if (!body.netminderPlayerId || typeof body.netminderPlayerId !== 'string') {
+        return false;
+    }
+
+    if (!isValidPlayerId(body.netminderPlayerId)) {
+        return false;
+    }
+
+    return true;
 };
 
 const ValidatePostGameBody = (body: IGamePostBody): boolean => {
@@ -250,12 +336,17 @@ const ValidatePostGameBody = (body: IGamePostBody): boolean => {
         return false;
     }
 
-    const invalidPlayers = body.teamRoster.filter((playerId) => {
+    const invalidPlayers = body.teamRoster.filter((playerId: string) => {
         return !isValidPlayerId(playerId);
     });
 
     if (invalidPlayers.length > 0) {
         console.log('Invalid Players', invalidPlayers);
+        return false;
+    }
+
+    if (!body.location || (body.location !== 'HOME' && body.location !== 'AWAY')) {
+        console.log('Invalid Location', body.location);
         return false;
     }
 

@@ -42,6 +42,47 @@ export async function GetAllGamesFromDatabase(): Promise<IGame[]> {
     return games;
 }
 
+export async function UpdateGameAwardsInDatabase(gameId: string, manOfTheMatchPlayerId: string | null, warriorOfTheGamePlayerId: string | null) {
+    const update: Record<string, string | null> = {};
+    
+    update.manOfTheMatchPlayerId = manOfTheMatchPlayerId;
+    update.warriorOfTheGamePlayerId = warriorOfTheGamePlayerId;
+
+    const result = await collections.game?.updateOne(
+        { _id: gameId },
+        {
+            $set: update
+        }
+    );
+
+    if (!result || result.matchedCount === 0) {
+        throw GameErrors.GAME_NOT_FOUND;
+    }
+
+    if (result.modifiedCount === 0) {
+        throw new Error('Failed to update game awards');
+    }
+}
+
+export async function UpdateGameNetminderInDatabase(gameId: string, netminderPlayerId: string) {
+    const result = await collections.game?.updateOne(
+        { _id: gameId },
+        {
+            $set: {
+                netminderPlayerId: netminderPlayerId
+            }
+        }
+    );
+
+    if (!result || result.matchedCount === 0) {
+        throw GameErrors.GAME_NOT_FOUND;
+    }
+
+    if (result.modifiedCount === 0) {
+        throw new Error('Failed to update game netminder');
+    }
+}
+
 export async function AddGoalToGameInDatabase(gameId: string, addGoal: IAddGoalBody) {
     // Determine which period based on minute
     let periodNumber = 1;

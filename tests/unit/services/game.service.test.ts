@@ -25,6 +25,8 @@ describe('GameService', () => {
                 date: '2024-01-20T19:00:00.000Z',
                 opponentName: 'team',
                 seasonId: 'SSN2324',
+                type: 'CHALLENGE',
+                location: 'HOME',
             };
 
             const logSpy = jest.spyOn(console, 'log');
@@ -48,6 +50,8 @@ describe('GameService', () => {
                 date: '2024-01-20T19:00:00.000Z',
                 opponentName: 'team',
                 seasonId: 'SSN2324',
+                type: 'CHALLENGE',
+                location: 'HOME',
             };
 
             const logSpy = jest.spyOn(console, 'log');
@@ -60,6 +64,7 @@ describe('GameService', () => {
                     teams: [{ teamId: 'TM654321', number: 1 }],
                     firstName: 'firstName',
                     surname: 'surname',
+                    position: 'Forward',
                     stats: [],
                 },
             ]);
@@ -79,6 +84,8 @@ describe('GameService', () => {
                 date: '2024-01-20T19:00:00.000Z',
                 opponentName: 'team',
                 seasonId: 'SSN2324',
+                type: 'CHALLENGE',
+                location: 'HOME',
             };
 
             const expectedResult = generateGameMock();
@@ -135,6 +142,7 @@ describe('GameService', () => {
                     teams: [{ teamId: 'team-1', number: 1 }],
                     firstName: 'firstName',
                     surname: 'surname',
+                    position: 'Forward',
                     stats: [],
                 },
             ]);

@@ -14,6 +14,7 @@ export interface IPlayer {
     _id: string;
     firstName: string;
     surname: string;
+    position: string;
     teams: IPlayerTeamDetails[];
     stats: IPlayerStats[];
 }
@@ -24,6 +25,8 @@ export interface IPlayerStats {
     goals: number;
     assists: number;
     pims: number;
+    manOfTheMatch: number;
+    warriorOfTheGame: number;
 }
 
 /**
@@ -138,6 +141,29 @@ export async function RemoveTeamFromPlayerInDatabase(
 }
 
 /**
+ * Updates a player's number for a specific team in the database
+ * 
+ * @param playerId ID of the player to update
+ * @param teamId ID of the team to update the number for
+ * @param newNumber The new number for the player
+ * @returns Promise<void>
+ */
+export async function UpdatePlayerNumberForTeamInDatabase(
+    playerId: string,
+    teamId: string,
+    newNumber: number
+) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'teams.teamId': teamId },
+        { $set: { 'teams.$.number': newNumber } }
+    );
+
+    if (!updateResult || updateResult.matchedCount === 0) {
+        throw PlayerErrors.PLAYER_NOT_FOUND;
+    }
+}
+
+/**
  * This method will add a stats object to a player in the database
  * It assumes that the players do NOT have a stats object. If they do this will fail.
  * In the event something goes wrong, it will throw an error and get caught.
@@ -160,6 +186,8 @@ export async function AddStatsObjectToPlayersInDatabase(
                     goals: 0,
                     assists: 0,
                     pims: 0,
+                    manOfTheMatch: 0,
+                    warriorOfTheGame: 0,
                 },
             },
         }
@@ -343,6 +371,66 @@ export async function DecrementPimsForPlayerInDatabase(playerId: string, seasonI
     );
     
     // Verify the player was updated
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function IncrementManOfTheMatchForPlayerInDatabase(playerId: string, seasonId: string) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.manOfTheMatch': 1
+            }
+        }
+    );
+    
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function DecrementManOfTheMatchForPlayerInDatabase(playerId: string, seasonId: string) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.manOfTheMatch': -1
+            }
+        }
+    );
+    
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function IncrementWarriorOfTheGameForPlayerInDatabase(playerId: string, seasonId: string) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.warriorOfTheGame': 1
+            }
+        }
+    );
+    
+    if (!updateResult || updateResult.modifiedCount !== 1) {
+        throw PlayerErrors.STATS_NOT_UPDATED;
+    }
+}
+
+export async function DecrementWarriorOfTheGameForPlayerInDatabase(playerId: string, seasonId: string) {
+    const updateResult = await collections.player?.updateOne(
+        { _id: playerId, 'stats.seasonId': seasonId },
+        {
+            $inc: {
+                'stats.$.warriorOfTheGame': -1
+            }
+        }
+    );
+    
     if (!updateResult || updateResult.modifiedCount !== 1) {
         throw PlayerErrors.STATS_NOT_UPDATED;
     }

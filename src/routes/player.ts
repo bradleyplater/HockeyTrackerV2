@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
             return;
         }
 
-        const player = await addPlayerToDatabase(body.firstName, body.surname);
+        const player = await addPlayerToDatabase(body.firstName, body.surname, body.position);
 
         logger.LogRouteFinished('Create Player');
         res.status(StatusCodes.CREATED).json(player).send();
@@ -132,8 +132,13 @@ router.patch('/:playerId/details', async (req, res) => {
 function ValidatePostPlayerBody(player: {
     firstName: string;
     surname: string;
+    position: string;
 }): boolean {
-    return isValidName(player.firstName) && isValidName(player.surname);
+    return (
+        isValidName(player.firstName) &&
+        isValidName(player.surname) &&
+        isValidName(player.position)
+    );
 }
 
 export default router;

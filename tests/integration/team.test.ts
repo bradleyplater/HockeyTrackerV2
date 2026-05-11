@@ -87,6 +87,7 @@ describe('Team Intergration Tests', () => {
                 _id: 'TM123456',
                 name: 'Peterborough Warriors',
                 players: [],
+                stats: [],
             });
 
             const response = await request(app)
@@ -169,11 +170,13 @@ describe('Team Intergration Tests', () => {
                     _id: 'TM123456',
                     name: 'Peterborough Warriors',
                     players: [],
+                    stats: [],
                 },
                 {
                     _id: 'TM654321',
                     name: 'Peterborough Preds',
                     players: [],
+                    stats: [],
                 },
             ]);
 
@@ -187,11 +190,13 @@ describe('Team Intergration Tests', () => {
                 _id: 'TM123456',
                 name: 'Peterborough Warriors',
                 players: [],
+                stats: [],
             });
             expect(response.body[1]).toEqual({
                 _id: 'TM654321',
                 name: 'Peterborough Preds',
                 players: [],
+                stats: [],
             });
         });
 
